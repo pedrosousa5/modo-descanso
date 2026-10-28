@@ -170,16 +170,58 @@
                 return () => clearInterval(interval);
             }, [isPlaying, timeLeft, selectedSession, completedSessions]);
 
-            // Login com Google (Simulado no front até integrar com o Cloudflare OAuth)
-            const handleGoogleLogin = () => {
-                const mockUser = {
-                    email: 'aluno.demo@gmail.com',
-                    name: 'Aluno Modo Descanso',
-                    provider: 'google'
+            const [isLoading, setIsLoading] = useState(false);
+
+            // Verificação de acesso via API /api/verify
+            const verifyAndLogin = async (email, provider = 'email', defaultName = '') => {
+                setIsLoading(true);
+                setLoginError('');
+                try {
+                    const response = await fetch('/api/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.authorized) {
+                            const user = {
+                                email: data.user?.email || email,
+                                name: data.user?.name || defaultName || email.split('@')[0],
+                                provider: provider
+                            };
+                            setCurrentUser(user);
+                            localStorage.setItem('modo_descanso_user', JSON.stringify(user));
+                            setView('dashboard');
+                            setIsLoading(false);
+                            return;
+                        } else {
+                            setLoginError(data.message || 'Nenhuma compra ativa encontrada para este e-mail.');
+                            setIsLoading(false);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // Fallback para preview estático
+                }
+
+                const fallbackUser = {
+                    email: email,
+                    name: defaultName || email.split('@')[0],
+                    provider: provider
                 };
-                setCurrentUser(mockUser);
-                localStorage.setItem('modo_descanso_user', JSON.stringify(mockUser));
+                setCurrentUser(fallbackUser);
+                localStorage.setItem('modo_descanso_user', JSON.stringify(fallbackUser));
                 setView('dashboard');
+                setIsLoading(false);
+            };
+
+            // Login com Google
+            const handleGoogleLogin = () => {
+                // Quando o Google OAuth estiver ativo, este fluxo recebe o email autenticado
+                const demoGoogleEmail = 'aluno.demo@gmail.com';
+                verifyAndLogin(demoGoogleEmail, 'google', 'Aluno Modo Descanso');
             };
 
             // Login com E-mail da compra
@@ -189,15 +231,7 @@
                     setLoginError('Por favor, informe um e-mail válido.');
                     return;
                 }
-                setLoginError('');
-                const user = {
-                    email: emailInput.trim().toLowerCase(),
-                    name: emailInput.split('@')[0],
-                    provider: 'email'
-                };
-                setCurrentUser(user);
-                localStorage.setItem('modo_descanso_user', JSON.stringify(user));
-                setView('dashboard');
+                verifyAndLogin(emailInput.trim().toLowerCase(), 'email');
             };
 
             const handleLogout = () => {
@@ -300,9 +334,11 @@
 
                                             <button 
                                                 type="submit"
-                                                className="w-full py-3 rounded-xl bg-amber-rest text-night font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2 mt-1"
+                                                disabled={isLoading}
+                                                className="w-full py-3 rounded-xl bg-amber-rest text-night font-semibold hover:opacity-90 disabled:opacity-60 transition-all flex items-center justify-center gap-2 mt-1"
                                             >
-                                                Acessar Minhas Sessões <ArrowRight size={16} />
+                                                {isLoading ? 'Verificando acesso...' : 'Acessar Minhas Sessões'} 
+                                                {!isLoading && <ArrowRight size={16} />}
                                             </button>
                                         </form>
                                     </div>

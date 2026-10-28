@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "modo-descanso",
+  "compatibility_date": "2026-10-28",
+  "pages_build_output_dir": ".",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "modo-descanso-db",
+      "database_id": "MODO_DESCANSO_D1_ID"
+    }
+  ],
+  "vars": {
+    "ADMIN_SECRET": "descanso-admin-2026"
+  }
+}
