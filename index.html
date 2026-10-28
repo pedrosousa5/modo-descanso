@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MODO DESCANSO · Aplicativo</title>
+    <title>MODO DESCANSO · Aplicativo Oficial</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- React e ReactDOM -->
@@ -14,11 +14,12 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0B101D;
             color: #F4F1EA;
+            overflow-x: hidden;
         }
         h1, h2, h3, h4, .font-sora {
             font-family: 'Sora', sans-serif;
@@ -33,18 +34,67 @@
 
         @keyframes pulse-gentle {
             0%, 100% { transform: scale(1); opacity: 0.25; }
-            50% { transform: scale(1.06); opacity: 0.45; }
+            50% { transform: scale(1.08); opacity: 0.55; }
         }
         .animate-breathe {
             animation: pulse-gentle 6s ease-in-out infinite;
         }
+
+        /* Estrutura 3D do Flip Card */
+        .flip-scene {
+            perspective: 1600px;
+            width: 100%;
+        }
+        .flip-card {
+            position: relative;
+            width: 100%;
+            transition: transform 0.75s cubic-bezier(0.2, 0.85, 0.25, 1);
+            transform-style: preserve-3d;
+        }
+        .flip-card.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .flip-face {
+            width: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .flip-card:not(.is-flipped) .flip-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+            opacity: 0;
+            transform: rotateY(180deg);
+        }
+        .flip-card.is-flipped .flip-front {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .flip-card.is-flipped .flip-back {
+            position: relative;
+            pointer-events: auto;
+            opacity: 1;
+            transform: rotateY(180deg);
+        }
+
+        /* Custom range slider para áudio */
+        input[type=range] {
+            accent-color: #D6A86A;
+        }
     </style>
 </head>
-<body class="bg-night text-ivory min-h-screen">
+<body class="bg-night text-ivory min-h-screen selection:bg-amber-rest/30">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         // Helper para renderizar ícones Lucide
         const createIcon = (name) => ({ size = 20, className = "" }) => {
@@ -71,6 +121,7 @@
         const Pause = createIcon('Pause');
         const Square = createIcon('Square');
         const RotateCcw = createIcon('RotateCcw');
+        const RotateCw = createIcon('RotateCw');
         const ChevronDown = createIcon('ChevronDown');
         const ChevronUp = createIcon('ChevronUp');
         const Shield = createIcon('Shield');
@@ -78,12 +129,23 @@
         const Headphones = createIcon('Headphones');
         const HelpCircle = createIcon('HelpCircle');
         const ArrowRight = createIcon('ArrowRight');
+        const ArrowLeft = createIcon('ArrowLeft');
         const CheckCircle2 = createIcon('CheckCircle2');
         const Mail = createIcon('Mail');
         const LogOut = createIcon('LogOut');
-        const ArrowLeft = createIcon('ArrowLeft');
+        const Volume2 = createIcon('Volume2');
+        const VolumeX = createIcon('VolumeX');
+        const BookOpen = createIcon('BookOpen');
+        const Heart = createIcon('Heart');
+        const Compass = createIcon('Compass');
+        const FileText = createIcon('FileText');
+        const Check = createIcon('Check');
+        const Activity = createIcon('Activity');
+        const Sun = createIcon('Sun');
+        const Moon = createIcon('Moon');
+        const Zap = createIcon('Zap');
 
-        // Ícone oficial do Google para o botão de autenticação
+        // Ícone oficial do Google
         const GoogleIcon = ({ size = 18 }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" className="shrink-0">
                 <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
@@ -96,35 +158,39 @@
         const SESSIONS = [
             { 
                 id: 'humming-3', 
-                name: 'Humming', 
-                duration: 3, 
+                name: 'ONDA Humming', 
+                duration: 185, 
                 durationText: '3 min', 
                 tag: 'Transição Imediata',
-                context: 'Vibração sonora simples para interromper o loop de pensamentos acelerados.' 
+                context: 'Vibração vocal simples para interromper o loop de pensamentos acelerados e estimular o nervo vago.',
+                audioSrc: 'audio/humming-3.mp3'
             },
             { 
                 id: 'onda-5', 
-                name: 'ONDA · Respiro', 
-                duration: 5, 
+                name: 'ONDA 5', 
+                duration: 300, 
                 durationText: '5 min', 
                 tag: 'Pausa Rápida',
-                context: 'Rampa de descida curta para restaurar o eixo no meio da rotina de trabalho.' 
+                context: 'Rampa de descida curta para restaurar o eixo no meio da rotina e acalmar os batimentos.',
+                audioSrc: 'audio/onda-5.mp3'
             },
             { 
                 id: 'onda-11', 
-                name: 'ONDA · Descompressão', 
-                duration: 11, 
+                name: 'ONDA 11', 
+                duration: 660, 
                 durationText: '11 min', 
-                tag: 'Fim de Expediente',
-                context: 'Transição consciente para desarmar a prontidão do corpo e encerrar o dia.' 
+                tag: 'Descompressão & Foco',
+                context: 'Transição consciente pós-almoço ou conversa difícil para desarmar a prontidão do corpo.',
+                audioSrc: 'audio/onda-11.mp3'
             },
             { 
                 id: 'onda-22', 
-                name: 'ONDA · Imersão Noturna', 
-                duration: 22, 
+                name: 'ONDA 22', 
+                duration: 1281, 
                 durationText: '22 min', 
-                tag: 'Antes de Dormir',
-                context: 'Condução profunda para desativar o sistema de alerta e preparar para o sono.' 
+                tag: 'Imersão Noturna',
+                context: 'Condução profunda para desativar o sistema de alerta, desarmar a musculatura e preparar para o sono.',
+                audioSrc: 'audio/onda-22.mp3'
             }
         ];
 
@@ -139,38 +205,83 @@
                 return localStorage.getItem('modo_descanso_user') ? 'dashboard' : 'login';
             });
 
+            // Estado de Flip da tela principal para a tela secundária de educação
+            const [isFlipped, setIsFlipped] = useState(false);
+
             const [emailInput, setEmailInput] = useState('');
             const [loginError, setLoginError] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+
+            // Estado do Player de Áudio
             const [selectedSession, setSelectedSession] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
-            const [timeLeft, setTimeLeft] = useState(0);
-            const [totalDuration, setTotalDuration] = useState(0);
+            const [currentTime, setCurrentTime] = useState(0);
+            const [duration, setDuration] = useState(0);
+            const [volume, setVolume] = useState(0.85);
+            const [isMuted, setIsMuted] = useState(false);
+            const audioRef = useRef(null);
+
             const [completedSessions, setCompletedSessions] = useState(() => {
                 const saved = localStorage.getItem('modo_descanso_completed');
                 return saved ? JSON.parse(saved) : [];
             });
 
-            const [openUnderstand, setOpenUnderstand] = useState(null);
+            // Estado dos cards expansíveis da página secundária
+            const [expandedModule, setExpandedModule] = useState('seguranca');
 
-            // Timer do Player
+            // Estado interativo do Journaling (persiste notas locais)
+            const [journalNotes, setJournalNotes] = useState(() => {
+                const saved = localStorage.getItem('modo_descanso_journal');
+                return saved ? JSON.parse(saved) : {
+                    gratidao: '',
+                    intencao: '',
+                    crenca: '',
+                    sincronicidade: ''
+                };
+            });
+            const [saveStatus, setSaveStatus] = useState(false);
+
+            const handleJournalChange = (field, value) => {
+                const updated = { ...journalNotes, [field]: value };
+                setJournalNotes(updated);
+                localStorage.setItem('modo_descanso_journal', JSON.stringify(updated));
+                setSaveStatus(true);
+                setTimeout(() => setSaveStatus(false), 2000);
+            };
+
+            // Efeito para sincronizar áudio real
             useEffect(() => {
-                let interval = null;
-                if (isPlaying && timeLeft > 0) {
-                    interval = setInterval(() => {
-                        setTimeLeft(prev => prev - 1);
-                    }, 1000);
-                } else if (timeLeft === 0 && isPlaying) {
+                const audio = audioRef.current;
+                if (!audio) return;
+
+                const updateTime = () => setCurrentTime(audio.currentTime);
+                const handleLoadedMetadata = () => setDuration(audio.duration || selectedSession?.duration || 0);
+                const handleEnded = () => {
                     setIsPlaying(false);
                     if (selectedSession && !completedSessions.includes(selectedSession.id)) {
                         const updated = [...completedSessions, selectedSession.id];
                         setCompletedSessions(updated);
                         localStorage.setItem('modo_descanso_completed', JSON.stringify(updated));
                     }
-                }
-                return () => clearInterval(interval);
-            }, [isPlaying, timeLeft, selectedSession, completedSessions]);
+                };
 
-            const [isLoading, setIsLoading] = useState(false);
+                audio.addEventListener('timeupdate', updateTime);
+                audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+                audio.addEventListener('ended', handleEnded);
+
+                return () => {
+                    audio.removeEventListener('timeupdate', updateTime);
+                    audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                    audio.removeEventListener('ended', handleEnded);
+                };
+            }, [selectedSession, completedSessions]);
+
+            // Atualização de volume
+            useEffect(() => {
+                if (audioRef.current) {
+                    audioRef.current.volume = isMuted ? 0 : volume;
+                }
+            }, [volume, isMuted]);
 
             // Verificação de acesso via API /api/verify
             const verifyAndLogin = async (email, provider = 'email', defaultName = '') => {
@@ -203,7 +314,7 @@
                         }
                     }
                 } catch (e) {
-                    // Fallback para preview estático
+                    // Fallback se estiver offline ou local
                 }
 
                 const fallbackUser = {
@@ -217,14 +328,11 @@
                 setIsLoading(false);
             };
 
-            // Login com Google
             const handleGoogleLogin = () => {
-                // Quando o Google OAuth estiver ativo, este fluxo recebe o email autenticado
                 const demoGoogleEmail = 'aluno.demo@gmail.com';
                 verifyAndLogin(demoGoogleEmail, 'google', 'Aluno Modo Descanso');
             };
 
-            // Login com E-mail da compra
             const handleEmailLogin = (e) => {
                 e.preventDefault();
                 if (!emailInput || !emailInput.includes('@')) {
@@ -239,43 +347,92 @@
                 localStorage.removeItem('modo_descanso_user');
                 setView('login');
                 setIsPlaying(false);
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                }
             };
 
             const startSession = (session) => {
                 setSelectedSession(session);
-                setTotalDuration(session.duration * 60);
-                setTimeLeft(session.duration * 60);
-                setIsPlaying(false);
+                setCurrentTime(0);
+                setDuration(session.duration);
                 setView('player');
+                setIsPlaying(true);
+                if (audioRef.current) {
+                    audioRef.current.src = session.audioSrc;
+                    audioRef.current.play().catch(e => console.log('Autoplay prevenido:', e));
+                }
+            };
+
+            const togglePlayPause = () => {
+                if (!audioRef.current) return;
+                if (isPlaying) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                } else {
+                    audioRef.current.play().then(() => setIsPlaying(true)).catch(e => console.log(e));
+                }
+            };
+
+            const restartSession = () => {
+                if (audioRef.current) {
+                    audioRef.current.currentTime = 0;
+                    setCurrentTime(0);
+                    audioRef.current.play();
+                    setIsPlaying(true);
+                }
+            };
+
+            const handleSeek = (e) => {
+                const newTime = parseFloat(e.target.value);
+                setCurrentTime(newTime);
+                if (audioRef.current) {
+                    audioRef.current.currentTime = newTime;
+                }
             };
 
             const formatTime = (seconds) => {
+                if (isNaN(seconds)) return '00:00';
                 const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
+                const secs = Math.floor(seconds % 60);
                 return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             };
 
             return (
                 <div className="w-full max-w-2xl mx-auto px-4 py-6 md:py-10 flex flex-col min-h-screen justify-between">
+                    {/* Elemento de Áudio HTML5 invisível */}
+                    <audio ref={audioRef} preload="auto" />
+
                     <div>
-                        {/* Header unificado do App */}
+                        {/* Header Unificado do Aplicativo */}
                         <header className="flex justify-between items-center border-b border-slate-800/80 pb-4 mb-6">
                             <div className="flex items-center gap-2">
                                 <span className="font-sora font-semibold text-lg tracking-tight text-ivory">
                                     MODO<span className="text-amber-rest mx-1">·</span>DESCANSO
                                 </span>
                             </div>
+
                             {currentUser && (
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xs text-slate-400 hidden sm:inline truncate max-w-[180px]">
-                                        {currentUser.email}
-                                    </span>
+                                <div className="flex items-center gap-2.5">
+                                    {/* Botão de Flip: Duas setas circulares para girar entre Sessões e Educação */}
+                                    {view === 'dashboard' && (
+                                        <button 
+                                            onClick={() => setIsFlipped(!isFlipped)} 
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-night-card border border-amber-rest/40 hover:border-amber-rest text-amber-rest hover:bg-amber-rest/10 transition-all text-xs font-medium shadow-sm active:scale-95"
+                                            title={isFlipped ? "Girar de volta para as Sessões de Áudio" : "Girar para Educação sobre a Prática & Bônus"}
+                                        >
+                                            <RotateCw size={13} className={`transition-transform duration-700 ${isFlipped ? "rotate-180 text-ivory" : ""}`} />
+                                            <span>{isFlipped ? "Ver Sessões" : "Educação & Bônus"}</span>
+                                        </button>
+                                    )}
+
                                     <button 
                                         onClick={handleLogout}
-                                        className="text-xs px-3 py-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-400 hover:text-amber-rest hover:border-slate-700 flex items-center gap-1.5 transition-all"
+                                        className="text-xs px-2.5 py-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-400 hover:text-amber-rest hover:border-slate-700 flex items-center gap-1 transition-all"
                                         title="Sair da conta"
                                     >
-                                        <LogOut size={13} /> Sair
+                                        <LogOut size={13} />
+                                        <span className="hidden sm:inline">Sair</span>
                                     </button>
                                 </div>
                             )}
@@ -297,7 +454,6 @@
                                         </p>
                                     </div>
 
-                                    {/* Botão de Login com Google */}
                                     <div className="flex flex-col gap-4">
                                         <button 
                                             onClick={handleGoogleLogin}
@@ -313,7 +469,6 @@
                                             <div className="flex-1 h-px bg-slate-800"></div>
                                         </div>
 
-                                        {/* Formulário de E-mail */}
                                         <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
                                             <div>
                                                 <label className="text-xs text-slate-400 mb-1.5 block">E-mail da compra</label>
@@ -352,207 +507,436 @@
                             </div>
                         )}
 
-                        {/* TELA 2: PAINEL DE SESSÕES (DASHBOARD DO ALUNO) */}
+                        {/* TELA 2: DASHBOARD COM 3D FLIP CARD */}
                         {view === 'dashboard' && (
-                            <div className="flex flex-col gap-6 animate-fade-in">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <h2 className="font-sora text-2xl font-semibold text-ivory">Escolha sua Pausa</h2>
-                                        <p className="text-slate-400 text-sm mt-0.5">Selecione a condução ideal para o seu estado de alerta agora.</p>
-                                    </div>
-                                    <button 
-                                        onClick={() => setView('understand')}
-                                        className="text-xs px-3 py-2 rounded-lg bg-night-card border border-slate-800 text-amber-rest hover:border-amber-rest/60 flex items-center gap-1.5 transition-all"
-                                    >
-                                        <HelpCircle size={14} /> Entender o Método
-                                    </button>
-                                </div>
+                            <div className="flip-scene">
+                                <div className={`flip-card ${isFlipped ? 'is-flipped' : ''}`}>
+                                    
+                                    {/* ==================== LADO A (FRENTE): PAINEL DE SESSÕES ==================== */}
+                                    <div className="flip-face flip-front flex flex-col gap-6">
+                                        <div className="flex justify-between items-end">
+                                            <div>
+                                                <h2 className="font-sora text-2xl font-semibold text-ivory">Escolha sua Pausa</h2>
+                                                <p className="text-slate-400 text-sm mt-0.5">Selecione a condução ideal para o seu estado de alerta agora.</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => setIsFlipped(true)}
+                                                className="text-xs px-3 py-1.5 rounded-lg bg-night-card border border-slate-800 text-amber-rest hover:border-amber-rest/60 flex items-center gap-1.5 transition-all shadow-sm"
+                                            >
+                                                <RotateCw size={13} />
+                                                <span className="hidden sm:inline">Virar Cartão:</span> Educação & Bônus
+                                            </button>
+                                        </div>
 
-                                {/* Banner de Fones Recomendados */}
-                                <div className="p-3.5 rounded-xl bg-night-card/70 border border-slate-800/80 flex items-center gap-3 text-xs text-slate-400">
-                                    <div className="p-2 rounded-lg bg-amber-rest/10 text-amber-rest shrink-0">
-                                        <Headphones size={16} />
-                                    </div>
-                                    <span>Recomendamos o uso de fones de ouvido para condução binaural e isolamento de ruído.</span>
-                                </div>
+                                        {/* Banner de Fones Recomendados */}
+                                        <div className="p-3.5 rounded-xl bg-night-card/70 border border-slate-800/80 flex items-center gap-3 text-xs text-slate-400">
+                                            <div className="p-2 rounded-lg bg-amber-rest/10 text-amber-rest shrink-0">
+                                                <Headphones size={16} />
+                                            </div>
+                                            <span>Recomendamos o uso de fones de ouvido para condução neurossomática e isolamento de ruído.</span>
+                                        </div>
 
-                                {/* Grid das 4 Sessões */}
-                                <div className="flex flex-col gap-3">
-                                    {SESSIONS.map((s) => (
-                                        <div 
-                                            key={s.id} 
-                                            onClick={() => startSession(s)}
-                                            className="bg-night-card border border-slate-800/90 hover:border-amber-rest/60 p-5 rounded-2xl flex flex-col gap-3 cursor-pointer transition-all bg-night-hover group shadow-md"
-                                        >
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[11px] text-amber-rest uppercase tracking-wider font-semibold">
-                                                        {s.tag}
-                                                    </span>
-                                                    <span className="font-sora font-semibold text-xl text-ivory group-hover:text-amber-rest transition-colors">
-                                                        {s.name}
-                                                    </span>
+                                        {/* Grid das 4 Sessões */}
+                                        <div className="flex flex-col gap-3">
+                                            {SESSIONS.map((s) => (
+                                                <div 
+                                                    key={s.id} 
+                                                    onClick={() => startSession(s)}
+                                                    className="bg-night-card border border-slate-800/90 hover:border-amber-rest/60 p-5 rounded-2xl flex flex-col gap-3 cursor-pointer transition-all bg-night-hover group shadow-md"
+                                                >
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[11px] text-amber-rest uppercase tracking-wider font-semibold">
+                                                                {s.tag}
+                                                            </span>
+                                                            <span className="font-sora font-semibold text-xl text-ivory group-hover:text-amber-rest transition-colors">
+                                                                {s.name}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {completedSessions.includes(s.id) && (
+                                                                <span className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-900/50">
+                                                                    <CheckCircle2 size={11} /> Realizada
+                                                                </span>
+                                                            )}
+                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-night border border-slate-700 text-amber-rest font-mono">
+                                                                {s.durationText}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-slate-400 text-sm leading-relaxed">{s.context}</p>
+                                                    <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-rest pt-1">
+                                                        <Play size={14} className="fill-current" />
+                                                        <span>Iniciar condução com áudio</span>
+                                                        <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform ml-auto" />
+                                                    </div>
                                                 </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* ==================== LADO B (VERSO): EDUCAÇÃO SOBRE A PRÁTICA & BÔNUS ==================== */}
+                                    <div className="flip-face flip-back flex flex-col gap-5">
+                                        <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                            <div>
+                                                <h2 className="font-sora text-2xl font-semibold text-ivory flex items-center gap-2">
+                                                    <BookOpen size={22} className="text-amber-rest" /> Educação & Apoio
+                                                </h2>
+                                                <p className="text-slate-400 text-xs mt-0.5">Fundamentos fisiológicos, limites de saúde e ferramentas interativas.</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => setIsFlipped(false)}
+                                                className="text-xs px-3 py-1.5 rounded-lg bg-amber-rest text-night font-semibold hover:opacity-90 flex items-center gap-1.5 transition-all shadow-md"
+                                            >
+                                                <RotateCw size={13} />
+                                                <span>Voltar às Sessões</span>
+                                            </button>
+                                        </div>
+
+                                        {/* 1. MANUAL DE PRÁTICA SEGURA (DESTAQUE OURO) */}
+                                        <div className="bg-gradient-to-br from-amber-950/20 via-night-card to-night-card border border-amber-rest/40 rounded-2xl p-5 shadow-lg flex flex-col gap-4">
+                                            <div className="flex items-start justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    {completedSessions.includes(s.id) && (
-                                                        <span className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-900/50">
-                                                            <CheckCircle2 size={11} /> Realizada
-                                                        </span>
-                                                    )}
-                                                    <span className="text-xs px-2.5 py-1 rounded-full bg-night border border-slate-700 text-amber-rest font-mono">
-                                                        {s.durationText}
-                                                    </span>
+                                                    <div className="p-2 rounded-xl bg-amber-rest/20 text-amber-rest">
+                                                        <Shield size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-amber-rest uppercase tracking-wider font-semibold block">Manual de Prática Segura</span>
+                                                        <h3 className="font-sora font-semibold text-lg text-ivory">Fundamentos & Segurança na Prática</h3>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[10px] bg-amber-rest/10 text-amber-rest px-2.5 py-1 rounded-full border border-amber-rest/30">Incluso</span>
+                                            </div>
+
+                                            {/* A Mecânica Tríplice */}
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-xs">
+                                                <div className="p-3 rounded-xl bg-night/80 border border-slate-800/80">
+                                                    <strong className="text-amber-rest block mb-1">1. Respiração Nasal</strong>
+                                                    <span className="text-slate-400">Inalação pelo nariz que satura as células com oxigênio e ativa a produção natural de óxido nítrico.</span>
+                                                </div>
+                                                <div className="p-3 rounded-xl bg-night/80 border border-slate-800/80">
+                                                    <strong className="text-amber-rest block mb-1">2. Kumbhaka (Retenção)</strong>
+                                                    <span className="text-slate-400">Pausa com pulmões vazios estimulando biogênese mitocondrial e regeneração biológica.</span>
+                                                </div>
+                                                <div className="p-3 rounded-xl bg-night/80 border border-slate-800/80">
+                                                    <strong className="text-amber-rest block mb-1">3. Tonificação Vocal</strong>
+                                                    <span className="text-slate-400">O som de zumbido (Humming) faz ressonância no peito e aciona o nervo vago e o parassimpático.</span>
                                                 </div>
                                             </div>
-                                            <p className="text-slate-400 text-sm leading-relaxed">{s.context}</p>
-                                            <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-rest pt-1">
-                                                <span>Iniciar condução</span>
-                                                <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+
+                                            {/* Matriz de Segurança e Alertas Médicos */}
+                                            <div className="p-3.5 rounded-xl bg-night/90 border border-rose-950/40 text-xs flex flex-col gap-2">
+                                                <div className="flex items-center gap-2 text-rose-400 font-semibold">
+                                                    <Activity size={14} /> Contraindicações Estritas (Evitar apneia prolongada):
+                                                </div>
+                                                <p className="text-slate-400 leading-relaxed">
+                                                    Gravidez, pressão alta pós-infarto não controlada, histórico de crises convulsivas/epilepsia, uso de marca-passo ou arritmia grave. Nestes casos, mantenha apenas respiração suave sem retenção.
+                                                </p>
+                                                <div className="pt-2 border-t border-slate-800/80 text-amber-rest/90 font-medium">
+                                                    <strong>Regra de Ouro:</strong> Se sentir tontura acentuada ou mal-estar, retorne imediatamente à sua respiração normal e relaxe.
+                                                </div>
                                             </div>
                                         </div>
-                                    ))}
+
+                                        {/* 2. OS 4 MÓDULOS BÔNUS INTERATIVOS */}
+                                        <div className="flex flex-col gap-3">
+                                            <h3 className="text-xs uppercase font-semibold text-slate-400 tracking-wider">Módulos de Apoio & Ferramentas Práticas</h3>
+
+                                            {/* MÓDULO 1: A CIÊNCIA DA PAUSA & THI */}
+                                            <div className="bg-night-card border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                                                <button 
+                                                    onClick={() => setExpandedModule(expandedModule === 'mod1' ? null : 'mod1')}
+                                                    className="w-full p-4 text-left flex justify-between items-center text-sm font-semibold text-ivory hover:text-amber-rest transition-colors"
+                                                >
+                                                    <div className="flex items-center gap-2.5">
+                                                        <Activity size={16} className="text-amber-rest shrink-0" />
+                                                        <span>Módulo 1: A Ciência da Pausa & THI</span>
+                                                    </div>
+                                                    {expandedModule === 'mod1' ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
+                                                </button>
+                                                {expandedModule === 'mod1' && (
+                                                    <div className="p-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 flex flex-col gap-3 leading-relaxed">
+                                                        <p>
+                                                            Nas clínicas médicas e de longevidade, o Treinamento Hipóxico Intermitente (THI) usa equipamentos caros para alternar ar enriquecido e rarefeito em oxigênio. O Modo Descanso traz esse mesmo benefício fisiológico através dos pulmões vazios (Kumbhaka).
+                                                        </p>
+                                                        <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
+                                                                <strong className="text-amber-rest block">Biogênese Mitocondrial</strong>
+                                                                Novas usinas de energia nas células para combater a fadiga crônica.
+                                                            </div>
+                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
+                                                                <strong className="text-amber-rest block">Síntese de EPO</strong>
+                                                                Otimiza o transporte de oxigênio no sangue de forma 100% natural.
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* MÓDULO 2: IMERSÃO SONORA & FREQUÊNCIAS */}
+                                            <div className="bg-night-card border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                                                <button 
+                                                    onClick={() => setExpandedModule(expandedModule === 'mod2' ? null : 'mod2')}
+                                                    className="w-full p-4 text-left flex justify-between items-center text-sm font-semibold text-ivory hover:text-amber-rest transition-colors"
+                                                >
+                                                    <div className="flex items-center gap-2.5">
+                                                        <Zap size={16} className="text-amber-rest shrink-0" />
+                                                        <span>Módulo 2: Imersão Sonora & Frequências</span>
+                                                    </div>
+                                                    {expandedModule === 'mod2' ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
+                                                </button>
+                                                {expandedModule === 'mod2' && (
+                                                    <div className="p-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 flex flex-col gap-3 leading-relaxed">
+                                                        <p>
+                                                            As faixas de áudio usam <strong>Tons Isocrônicos</strong> com pulsação calibrada em áudio 3D. Em vez de forçar o cérebro a relaxar pelo pensamento, o som atua por ressonância neurossomática:
+                                                        </p>
+                                                        <ul className="list-disc pl-4 space-y-1 text-slate-400">
+                                                            <li><strong className="text-ivory">Ondas Alfa (8 a 12 Hz):</strong> Quebram a ansiedade e mantêm clareza relaxada sem sonolência pesada.</li>
+                                                            <li><strong className="text-ivory">Ondas Theta (4 a 8 Hz):</strong> Acesso ao limiar meditativo onde o corpo libera tensões musculares profundas.</li>
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* MÓDULO 3: REESCREVENDO O SUBCONSCIENTE & JOURNALING INTERATIVO */}
+                                            <div className="bg-night-card border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                                                <button 
+                                                    onClick={() => setExpandedModule(expandedModule === 'mod3' ? null : 'mod3')}
+                                                    className="w-full p-4 text-left flex justify-between items-center text-sm font-semibold text-ivory hover:text-amber-rest transition-colors"
+                                                >
+                                                    <div className="flex items-center gap-2.5">
+                                                        <FileText size={16} className="text-amber-rest shrink-0" />
+                                                        <span>Módulo 3: Reescrevendo o Subconsciente & Journaling</span>
+                                                    </div>
+                                                    {expandedModule === 'mod3' ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
+                                                </button>
+                                                {expandedModule === 'mod3' && (
+                                                    <div className="p-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 flex flex-col gap-4 leading-relaxed">
+                                                        <p>
+                                                            A respiração abre a porta do subconsciente (ondas Theta); a escrita no papel ancora a nova direção no córtex pré-frontal. Preencha seus registros abaixo (ficam salvos com segurança no seu navegador):
+                                                        </p>
+
+                                                        {/* Exercício 1: Gratidão Diária */}
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <label className="font-semibold text-amber-rest flex items-center gap-1.5">
+                                                                <Heart size={13} /> 1. Gratidão Diária (3 pequenas vitórias de hoje):
+                                                            </label>
+                                                            <textarea 
+                                                                value={journalNotes.gratidao}
+                                                                onChange={(e) => handleJournalChange('gratidao', e.target.value)}
+                                                                placeholder="1. Pelo respiro profundo no almoço... 2. Por concluir uma entrega..."
+                                                                rows="2"
+                                                                className="w-full p-2.5 rounded-xl bg-night border border-slate-800 text-xs text-ivory placeholder-slate-600 focus:outline-none focus:border-amber-rest"
+                                                            />
+                                                        </div>
+
+                                                        {/* Exercício 2: Intenção no Presente */}
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <label className="font-semibold text-amber-rest flex items-center gap-1.5">
+                                                                <Compass size={13} /> 2. Intenção no Presente ("Eu sou...", "Eu tenho..."):
+                                                            </label>
+                                                            <input 
+                                                                type="text"
+                                                                value={journalNotes.intencao}
+                                                                onChange={(e) => handleJournalChange('intencao', e.target.value)}
+                                                                placeholder="Eu habito a calma com serenidade e comando..."
+                                                                className="w-full p-2.5 rounded-xl bg-night border border-slate-800 text-xs text-ivory placeholder-slate-600 focus:outline-none focus:border-amber-rest"
+                                                            />
+                                                        </div>
+
+                                                        {/* Exercício 3: Liberação de Crenças */}
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <label className="font-semibold text-amber-rest flex items-center gap-1.5">
+                                                                <Sparkles size={13} /> 3. Liberação de Sobrecarga (O que solto hoje):
+                                                            </label>
+                                                            <input 
+                                                                type="text"
+                                                                value={journalNotes.crenca}
+                                                                onChange={(e) => handleJournalChange('crenca', e.target.value)}
+                                                                placeholder="Solto a necessidade de controlar tudo imediatamente..."
+                                                                className="w-full p-2.5 rounded-xl bg-night border border-slate-800 text-xs text-ivory placeholder-slate-600 focus:outline-none focus:border-amber-rest"
+                                                            />
+                                                        </div>
+
+                                                        {saveStatus && (
+                                                            <div className="text-[11px] text-emerald-400 flex items-center gap-1">
+                                                                <Check size={12} /> Anotação salva localmente no seu dispositivo.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* MÓDULO 4: TÉCNICAS RESPIRATÓRIAS OFFLINE */}
+                                            <div className="bg-night-card border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                                                <button 
+                                                    onClick={() => setExpandedModule(expandedModule === 'mod4' ? null : 'mod4')}
+                                                    className="w-full p-4 text-left flex justify-between items-center text-sm font-semibold text-ivory hover:text-amber-rest transition-colors"
+                                                >
+                                                    <div className="flex items-center gap-2.5">
+                                                        <Moon size={16} className="text-amber-rest shrink-0" />
+                                                        <span>Módulo 4: Técnicas Respiratórias Offline (Sem Fones)</span>
+                                                    </div>
+                                                    {expandedModule === 'mod4' ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
+                                                </button>
+                                                {expandedModule === 'mod4' && (
+                                                    <div className="p-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 flex flex-col gap-3 leading-relaxed">
+                                                        <p>
+                                                            Quando você estiver no aeroporto, em trânsito ou sem bateria no celular, utilize este protocolo de ancoragem em 3 passos simples:
+                                                        </p>
+                                                        <div className="space-y-2 text-slate-300">
+                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
+                                                                <strong className="text-amber-rest">1. Expiração Dobrada (4:8)</strong>
+                                                                <p className="text-slate-400 mt-0.5">Inale pelo nariz contando até 4; exale suavemente contando até 8. Reduz os batimentos cardíacos instantaneamente.</p>
+                                                            </div>
+                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
+                                                                <strong className="text-amber-rest">2. Humming Discreto</strong>
+                                                                <p className="text-slate-400 mt-0.5">Exale emitindo um zumbido sutil com os lábios selados para acionar o nervo vago sem chamar atenção.</p>
+                                                            </div>
+                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
+                                                                <strong className="text-amber-rest">3. Ancoragem Física</strong>
+                                                                <p className="text-slate-400 mt-0.5">Apoie a sola dos pés no chão, solte a tensão das mandíbulas e faça três respirações completas.</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                        </div>
+
+                                        <div className="pt-2">
+                                            <button 
+                                                onClick={() => setIsFlipped(false)}
+                                                className="w-full py-3 rounded-xl bg-night-card border border-amber-rest/40 text-amber-rest font-semibold hover:border-amber-rest transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <RotateCw size={15} />
+                                                <span>Girar de volta para as Sessões de Áudio</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         )}
 
-                        {/* TELA 3: PLAYER DE CONDUÇÃO */}
+                        {/* TELA 3: PLAYER DE CONDUÇÃO COM ÁUDIO REAL */}
                         {view === 'player' && selectedSession && (
-                            <div className="flex flex-col items-center justify-center gap-8 py-8 animate-fade-in">
-                                <div className="w-full flex justify-start">
+                            <div className="flex flex-col items-center justify-center gap-7 py-6 animate-fade-in">
+                                <div className="w-full flex justify-between items-center">
                                     <button 
-                                        onClick={() => setView('dashboard')}
+                                        onClick={() => {
+                                            setView('dashboard');
+                                            if (audioRef.current) audioRef.current.pause();
+                                            setIsPlaying(false);
+                                        }}
                                         className="text-xs px-3 py-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-400 hover:text-ivory flex items-center gap-1.5 transition-all"
                                     >
                                         <ArrowLeft size={13} /> Voltar ao Painel
                                     </button>
+
+                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                        <button 
+                                            onClick={() => setIsMuted(!isMuted)} 
+                                            className="p-1.5 rounded-lg bg-night-card border border-slate-800 hover:text-amber-rest"
+                                            title={isMuted ? "Ativar som" : "Silenciar"}
+                                        >
+                                            {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div className="flex flex-col items-center gap-2 text-center max-w-sm">
+                                <div className="flex flex-col items-center gap-1.5 text-center max-w-sm">
                                     <span className="text-amber-rest text-xs uppercase tracking-wider font-semibold">
                                         {selectedSession.tag}
                                     </span>
                                     <h2 className="font-sora text-3xl font-bold text-ivory">{selectedSession.name}</h2>
-                                    <p className="text-slate-400 text-sm">{selectedSession.context}</p>
+                                    <p className="text-slate-400 text-xs leading-relaxed px-4">{selectedSession.context}</p>
                                 </div>
 
-                                {/* Visualizador Circular da Rampa de Descida */}
-                                <div className="relative w-56 h-56 rounded-full border-2 border-slate-800 flex flex-col items-center justify-center bg-night-card shadow-2xl overflow-hidden">
-                                    <div className="absolute inset-0 rounded-full border-2 border-amber-rest animate-breathe"></div>
+                                {/* Visualizador Circular da Rampa de Descida com Animação de Respiração */}
+                                <div className="relative w-56 h-56 rounded-full border-2 border-slate-800/90 flex flex-col items-center justify-center bg-night-card shadow-2xl overflow-hidden">
+                                    <div className={`absolute inset-0 rounded-full border-2 border-amber-rest ${isPlaying ? 'animate-breathe' : 'opacity-20'}`}></div>
                                     <span className="font-sora text-5xl font-bold text-ivory tracking-tight font-mono">
-                                        {formatTime(timeLeft)}
+                                        {formatTime(currentTime)}
                                     </span>
                                     <span className="text-xs text-slate-400 mt-2">de {selectedSession.durationText}</span>
                                 </div>
 
-                                {/* Controles do Player */}
+                                {/* Linha de Progresso Scrubber do Áudio */}
+                                <div className="w-full max-w-md flex flex-col gap-1.5 px-2">
+                                    <input 
+                                        type="range"
+                                        min="0"
+                                        max={duration || selectedSession.duration}
+                                        value={currentTime}
+                                        onChange={handleSeek}
+                                        className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                    <div className="flex justify-between text-[11px] text-slate-500 font-mono">
+                                        <span>{formatTime(currentTime)}</span>
+                                        <span>-{formatTime(Math.max(0, (duration || selectedSession.duration) - currentTime))}</span>
+                                    </div>
+                                </div>
+
+                                {/* Controles do Player com Áudio Real */}
                                 <div className="flex items-center gap-4">
                                     <button 
-                                        onClick={() => setTimeLeft(totalDuration)}
-                                        className="p-3.5 rounded-full bg-night-card border border-slate-800 text-slate-300 hover:text-amber-rest hover:border-slate-700 transition-all shadow-md"
+                                        onClick={restartSession}
+                                        className="p-3.5 rounded-full bg-night-card border border-slate-800 text-slate-300 hover:text-amber-rest hover:border-slate-700 transition-all shadow-md active:scale-95"
                                         title="Reiniciar Sessão"
                                     >
-                                        <RotateCcw size={20} />
+                                        <RotateCcw size={19} />
                                     </button>
                                     <button 
-                                        onClick={() => setIsPlaying(!isPlaying)}
+                                        onClick={togglePlayPause}
                                         className="p-6 rounded-full bg-amber-rest text-night hover:opacity-90 transition-all shadow-xl active:scale-95"
                                         title={isPlaying ? "Pausar" : "Tocar"}
                                     >
-                                        {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
+                                        {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1 fill-current" />}
                                     </button>
                                     <button 
-                                        onClick={() => setView('dashboard')}
-                                        className="p-3.5 rounded-full bg-night-card border border-slate-800 text-slate-300 hover:text-rose-400 hover:border-slate-700 transition-all shadow-md"
+                                        onClick={() => {
+                                            setView('dashboard');
+                                            if (audioRef.current) audioRef.current.pause();
+                                            setIsPlaying(false);
+                                        }}
+                                        className="p-3.5 rounded-full bg-night-card border border-slate-800 text-slate-300 hover:text-rose-400 hover:border-slate-700 transition-all shadow-md active:scale-95"
                                         title="Encerrar"
                                     >
-                                        <Square size={20} />
+                                        <Square size={19} />
                                     </button>
                                 </div>
 
                                 <div className="text-xs text-slate-500 text-center max-w-xs flex items-center justify-center gap-1.5">
                                     <Headphones size={13} className="text-slate-400 shrink-0" />
-                                    <span>Ajuste o volume para um nível suave antes de iniciar.</span>
+                                    <span>Coloque seus fones para a condução tridimensional.</span>
                                 </div>
 
-                                {/* Pós-prática se concluída */}
-                                {timeLeft === 0 && (
-                                    <div className="w-full max-w-md bg-night-card border border-slate-800 p-6 rounded-2xl flex flex-col gap-4 animate-fade-in shadow-xl">
+                                {/* Pós-prática quando concluída */}
+                                {currentTime >= (duration || selectedSession.duration) - 2 && currentTime > 5 && (
+                                    <div className="w-full max-w-md bg-night-card border border-emerald-900/50 p-6 rounded-2xl flex flex-col gap-3 animate-fade-in shadow-xl text-center">
                                         <div className="flex items-center justify-center gap-2 text-emerald-400 text-sm font-semibold">
-                                            <CheckCircle2 size={16} /> Prática Concluída
+                                            <CheckCircle2 size={18} /> Sessão Concluída com Sucesso!
                                         </div>
-                                        <p className="text-slate-300 text-sm text-center">
-                                            Permita-se ficar alguns instantes em silêncio antes de retomar as atividades.
+                                        <p className="text-slate-300 text-xs">
+                                            Permita-se permanecer alguns instantes em silêncio antes de retomar as atividades ou dormir.
                                         </p>
                                         <div className="flex gap-2 pt-2">
                                             <button 
-                                                onClick={() => setTimeLeft(totalDuration)}
-                                                className="flex-1 py-2.5 rounded-xl bg-night border border-slate-700 text-xs font-medium hover:border-amber-rest transition-colors"
+                                                onClick={restartSession}
+                                                className="flex-1 py-2 rounded-xl bg-night border border-slate-700 text-xs font-medium hover:border-amber-rest transition-colors"
                                             >
-                                                Repetir
+                                                Repetir Sessão
                                             </button>
                                             <button 
                                                 onClick={() => setView('dashboard')}
-                                                className="flex-1 py-2.5 rounded-xl bg-amber-rest text-night text-xs font-semibold hover:opacity-90 transition-all"
+                                                className="flex-1 py-2 rounded-xl bg-amber-rest text-night text-xs font-semibold hover:opacity-90 transition-all"
                                             >
                                                 Voltar ao Painel
                                             </button>
                                         </div>
                                     </div>
                                 )}
-                            </div>
-                        )}
-
-                        {/* TELA 4: ENTENDER O MÉTODO */}
-                        {view === 'understand' && (
-                            <div className="flex flex-col gap-6 animate-fade-in">
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <h2 className="font-sora text-2xl font-semibold text-ivory">Entender a Prática</h2>
-                                        <p className="text-slate-400 text-sm">Os fundamentos neurofisiológicos do Modo Descanso.</p>
-                                    </div>
-                                    <button 
-                                        onClick={() => setView('dashboard')}
-                                        className="text-xs px-3 py-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-300 hover:text-ivory"
-                                    >
-                                        Voltar
-                                    </button>
-                                </div>
-
-                                <div className="flex flex-col gap-3">
-                                    {[
-                                        { 
-                                            q: "O que é o estado de Alerta Ligado?", 
-                                            a: "É quando o corpo e a mente permanecem em prontidão excessiva mesmo após o término das exigências do dia. O sistema simpático não desliga sozinho, gerando tensão crônica leve e fadiga ao acordar." 
-                                        },
-                                        { 
-                                            q: "Como funciona a Rampa de Descida?", 
-                                            a: "Tentar parar uma mente acelerada de forma abrupta gera frustração. A rampa utiliza frequências sonoras e ritmos respiratórios decrescentes para desacelerar o sistema nervoso gradualmente, sem esforço mental." 
-                                        },
-                                        { 
-                                            q: "Preciso ter experiência prévia com meditação?", 
-                                            a: "Não. O Modo Descanso não é meditação contemplativa nem exige esvaziar a mente. Trata-se de uma resposta fisiológica direta: basta colocar os fones e permitir que a condução faça o trabalho." 
-                                        },
-                                        { 
-                                            q: "O que fazer se sentir desconforto ou ansiedade?", 
-                                            a: "Interrompa a qualquer momento. O descanso não deve ser forçado. Respire no seu próprio ritmo natural e retome apenas quando se sentir confortável." 
-                                        }
-                                    ].map((item, index) => (
-                                        <div key={index} className="bg-night-card border border-slate-800/80 rounded-xl overflow-hidden shadow-sm">
-                                            <button 
-                                                onClick={() => setOpenUnderstand(openUnderstand === index ? null : index)}
-                                                className="w-full p-4 text-left flex justify-between items-center font-medium text-sm text-ivory hover:text-amber-rest transition-colors"
-                                            >
-                                                <span>{item.q}</span>
-                                                {openUnderstand === index ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
-                                            </button>
-                                            {openUnderstand === index && (
-                                                <div className="px-4 pb-4 text-slate-400 text-xs md:text-sm border-t border-slate-800/50 pt-3 leading-relaxed">
-                                                    {item.a}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
                         )}
                     </div>
@@ -563,7 +947,7 @@
                             <Shield size={13} className="text-amber-rest" />
                             <span>Ambiente exclusivo para praticantes do Modo Descanso</span>
                         </div>
-                        <p>Em caso de crise ou sofrimento emocional agudo, ligue para o CVV 188.</p>
+                        <p>© 2026 Modo Descanso · Em caso de crise ou sofrimento emocional agudo, ligue para o CVV 188.</p>
                     </footer>
                 </div>
             );
