@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MODO DESCANSO</title>
+    <title>MODO DESCANSO · Aplicativo</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- React e ReactDOM -->
@@ -30,14 +30,23 @@
         .text-amber-rest { color: #D6A86A; }
         .bg-amber-rest { background-color: #D6A86A; }
         .border-amber-rest { border-color: #D6A86A; }
+
+        @keyframes pulse-gentle {
+            0%, 100% { transform: scale(1); opacity: 0.25; }
+            50% { transform: scale(1.06); opacity: 0.45; }
+        }
+        .animate-breathe {
+            animation: pulse-gentle 6s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="bg-night text-ivory min-h-screen">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect } = React;
 
+        // Helper para renderizar ícones Lucide
         const createIcon = (name) => ({ size = 20, className = "" }) => {
             const data = (window.lucide && window.lucide[name]) || [];
             return (
@@ -66,25 +75,72 @@
         const ChevronUp = createIcon('ChevronUp');
         const Shield = createIcon('Shield');
         const Sparkles = createIcon('Sparkles');
-        const Clock = createIcon('Clock');
-        const Compass = createIcon('Compass');
+        const Headphones = createIcon('Headphones');
         const HelpCircle = createIcon('HelpCircle');
         const ArrowRight = createIcon('ArrowRight');
         const CheckCircle2 = createIcon('CheckCircle2');
-        const Lock = createIcon('Lock');
+        const Mail = createIcon('Mail');
+        const LogOut = createIcon('LogOut');
+        const ArrowLeft = createIcon('ArrowLeft');
+
+        // Ícone oficial do Google para o botão de autenticação
+        const GoogleIcon = ({ size = 18 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" className="shrink-0">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+            </svg>
+        );
 
         const SESSIONS = [
-            { id: 'humming-3', name: 'Humming', duration: 3, durationText: '3 min', context: 'Transição rápida para silenciar o ruído mental imediato.' },
-            { id: 'onda-5', name: 'ONDA', duration: 5, durationText: '5 min', context: 'Micro-pausa restauradora para respiro no meio da rotina.' },
-            { id: 'onda-11', name: 'ONDA', duration: 11, durationText: '11 min', context: 'Descompressão profunda para o final do expediente.' },
-            { id: 'onda-22', name: 'ONDA', duration: 22, durationText: '22 min', context: 'Imersão noturna completa para desacelerar o sistema de alerta.' }
+            { 
+                id: 'humming-3', 
+                name: 'Humming', 
+                duration: 3, 
+                durationText: '3 min', 
+                tag: 'Transição Imediata',
+                context: 'Vibração sonora simples para interromper o loop de pensamentos acelerados.' 
+            },
+            { 
+                id: 'onda-5', 
+                name: 'ONDA · Respiro', 
+                duration: 5, 
+                durationText: '5 min', 
+                tag: 'Pausa Rápida',
+                context: 'Rampa de descida curta para restaurar o eixo no meio da rotina de trabalho.' 
+            },
+            { 
+                id: 'onda-11', 
+                name: 'ONDA · Descompressão', 
+                duration: 11, 
+                durationText: '11 min', 
+                tag: 'Fim de Expediente',
+                context: 'Transição consciente para desarmar a prontidão do corpo e encerrar o dia.' 
+            },
+            { 
+                id: 'onda-22', 
+                name: 'ONDA · Imersão Noturna', 
+                duration: 22, 
+                durationText: '22 min', 
+                tag: 'Antes de Dormir',
+                context: 'Condução profunda para desativar o sistema de alerta e preparar para o sono.' 
+            }
         ];
 
         function App() {
-            const [view, setView] = useState('landing'); // 'landing', 'app', 'session', 'understand'
-            const [isAuthenticated, setIsAuthenticated] = useState(() => {
-                return localStorage.getItem('modo_descanso_auth') === 'true';
+            // Estado do usuário autenticado
+            const [currentUser, setCurrentUser] = useState(() => {
+                const saved = localStorage.getItem('modo_descanso_user');
+                return saved ? JSON.parse(saved) : null;
             });
+
+            const [view, setView] = useState(() => {
+                return localStorage.getItem('modo_descanso_user') ? 'dashboard' : 'login';
+            });
+
+            const [emailInput, setEmailInput] = useState('');
+            const [loginError, setLoginError] = useState('');
             const [selectedSession, setSelectedSession] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
             const [timeLeft, setTimeLeft] = useState(0);
@@ -93,14 +149,10 @@
                 const saved = localStorage.getItem('modo_descanso_completed');
                 return saved ? JSON.parse(saved) : [];
             });
-            const [feedback, setFeedback] = useState('');
-            const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-            
-            // FAQ & Understand states
-            const [openFaq, setOpenFaq] = useState(null);
+
             const [openUnderstand, setOpenUnderstand] = useState(null);
 
-            // Timer logic
+            // Timer do Player
             useEffect(() => {
                 let interval = null;
                 if (isPlaying && timeLeft > 0) {
@@ -118,10 +170,41 @@
                 return () => clearInterval(interval);
             }, [isPlaying, timeLeft, selectedSession, completedSessions]);
 
-            const handleLogin = () => {
-                setIsAuthenticated(true);
-                localStorage.setItem('modo_descanso_auth', 'true');
-                setView('app');
+            // Login com Google (Simulado no front até integrar com o Cloudflare OAuth)
+            const handleGoogleLogin = () => {
+                const mockUser = {
+                    email: 'aluno.demo@gmail.com',
+                    name: 'Aluno Modo Descanso',
+                    provider: 'google'
+                };
+                setCurrentUser(mockUser);
+                localStorage.setItem('modo_descanso_user', JSON.stringify(mockUser));
+                setView('dashboard');
+            };
+
+            // Login com E-mail da compra
+            const handleEmailLogin = (e) => {
+                e.preventDefault();
+                if (!emailInput || !emailInput.includes('@')) {
+                    setLoginError('Por favor, informe um e-mail válido.');
+                    return;
+                }
+                setLoginError('');
+                const user = {
+                    email: emailInput.trim().toLowerCase(),
+                    name: emailInput.split('@')[0],
+                    provider: 'email'
+                };
+                setCurrentUser(user);
+                localStorage.setItem('modo_descanso_user', JSON.stringify(user));
+                setView('dashboard');
+            };
+
+            const handleLogout = () => {
+                setCurrentUser(null);
+                localStorage.removeItem('modo_descanso_user');
+                setView('login');
+                setIsPlaying(false);
             };
 
             const startSession = (session) => {
@@ -129,9 +212,7 @@
                 setTotalDuration(session.duration * 60);
                 setTimeLeft(session.duration * 60);
                 setIsPlaying(false);
-                setFeedbackSubmitted(false);
-                setFeedback('');
-                setView('session');
+                setView('player');
             };
 
             const formatTime = (seconds) => {
@@ -141,298 +222,312 @@
             };
 
             return (
-                <div className="w-full max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
-                    {/* Header / Nav */}
-                    <header className="flex justify-between items-center border-b border-slate-800 pb-4">
-                        <div 
-                            onClick={() => setView(isAuthenticated ? 'app' : 'landing')}
-                            className="cursor-pointer flex items-center gap-2"
-                        >
-                            <span className="font-sora font-semibold text-xl tracking-tight text-ivory">
-                                MODO<span className="text-amber-rest mx-1">·</span>DESCANSO
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            {isAuthenticated ? (
-                                <button 
-                                    onClick={() => setView('app')}
-                                    className="text-sm px-4 py-2 rounded-full bg-night-card border border-slate-800 text-amber-rest hover:border-amber-rest transition-all"
-                                >
-                                    Meu Painel
-                                </button>
-                            ) : (
-                                <button 
-                                    onClick={handleLogin}
-                                    className="text-sm px-4 py-2 rounded-full bg-amber-rest text-night font-medium hover:opacity-90 transition-all"
-                                >
-                                    Acessar Conta / Simular
-                                </button>
-                            )}
-                        </div>
-                    </header>
-
-                    {/* MAIN VIEW: LANDING PAGE */}
-                    {view === 'landing' && (
-                        <div className="flex flex-col gap-12 animate-fade-in">
-                            {/* Hero */}
-                            <div className="flex flex-col md:flex-row gap-8 items-center py-8">
-                                <div className="flex flex-col gap-6 flex-1">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-night-card border border-slate-800 text-amber-rest text-xs w-max">
-                                        <Sparkles size={14} /> Condução breve para sistemas em alerta
-                                    </div>
-                                    <h1 className="font-sora text-4xl md:text-5xl font-bold leading-tight text-ivory">
-                                        Cansado, mas ainda em alerta?
-                                    </h1>
-                                    <p className="text-slate-300 text-base md:text-lg leading-relaxed">
-                                        Uma pausa guiada para quem precisa desacelerar quando a mente não desliga. Sem diagnósticos, sem fórmulas mágicas e sem promessas irreais.
-                                    </p>
-                                    <div className="flex flex-wrap gap-4 pt-2">
-                                        <button 
-                                            onClick={handleLogin}
-                                            className="px-6 py-3 rounded-xl bg-amber-rest text-night font-semibold hover:opacity-90 transition-all flex items-center gap-2 shadow-lg"
-                                        >
-                                            Começar Agora <ArrowRight size={18} />
-                                        </button>
-                                    </div>
+                <div className="w-full max-w-2xl mx-auto px-4 py-6 md:py-10 flex flex-col min-h-screen justify-between">
+                    <div>
+                        {/* Header unificado do App */}
+                        <header className="flex justify-between items-center border-b border-slate-800/80 pb-4 mb-6">
+                            <div className="flex items-center gap-2">
+                                <span className="font-sora font-semibold text-lg tracking-tight text-ivory">
+                                    MODO<span className="text-amber-rest mx-1">·</span>DESCANSO
+                                </span>
+                            </div>
+                            {currentUser && (
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs text-slate-400 hidden sm:inline truncate max-w-[180px]">
+                                        {currentUser.email}
+                                    </span>
+                                    <button 
+                                        onClick={handleLogout}
+                                        className="text-xs px-3 py-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-400 hover:text-amber-rest hover:border-slate-700 flex items-center gap-1.5 transition-all"
+                                        title="Sair da conta"
+                                    >
+                                        <LogOut size={13} /> Sair
+                                    </button>
                                 </div>
-                                <div className="flex-1 w-full bg-night-card border border-slate-800 p-8 rounded-2xl flex flex-col items-center justify-center text-center gap-4 relative overflow-hidden">
-                                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#D6A86A_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                                    <Compass size={48} className="text-amber-rest animate-pulse" />
-                                    <h3 className="font-sora font-semibold text-lg">Método ONDA</h3>
-                                    <p className="text-slate-400 text-sm max-w-xs">
-                                        Alerta Ligado, Rampa de Descida e prática guiada para restaurar o eixo sem esforço.
-                                    </p>
+                            )}
+                        </header>
+
+                        {/* TELA 1: LOGIN / ACESSO */}
+                        {view === 'login' && (
+                            <div className="flex flex-col items-center justify-center py-6 md:py-12 animate-fade-in">
+                                <div className="w-full max-w-md bg-night-card border border-slate-800/80 rounded-2xl p-6 md:p-8 flex flex-col gap-6 shadow-xl">
+                                    <div className="flex flex-col gap-2 text-center">
+                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-amber-rest text-xs mx-auto">
+                                            <Sparkles size={13} /> Área do Praticante
+                                        </div>
+                                        <h1 className="font-sora text-2xl font-bold text-ivory mt-2">
+                                            Acesse seu aplicativo
+                                        </h1>
+                                        <p className="text-slate-400 text-sm">
+                                            Entre com o e-mail cadastrado na sua compra para liberar suas conduções guiadas.
+                                        </p>
+                                    </div>
+
+                                    {/* Botão de Login com Google */}
+                                    <div className="flex flex-col gap-4">
+                                        <button 
+                                            onClick={handleGoogleLogin}
+                                            className="w-full py-3 px-4 rounded-xl bg-white text-slate-900 font-medium hover:bg-slate-100 transition-all flex items-center justify-center gap-3 shadow-md active:scale-[0.99]"
+                                        >
+                                            <GoogleIcon size={18} />
+                                            <span>Continuar com o Google</span>
+                                        </button>
+
+                                        <div className="flex items-center gap-3 my-1">
+                                            <div className="flex-1 h-px bg-slate-800"></div>
+                                            <span className="text-xs text-slate-500 uppercase tracking-wider">ou por e-mail</span>
+                                            <div className="flex-1 h-px bg-slate-800"></div>
+                                        </div>
+
+                                        {/* Formulário de E-mail */}
+                                        <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
+                                            <div>
+                                                <label className="text-xs text-slate-400 mb-1.5 block">E-mail da compra</label>
+                                                <div className="relative">
+                                                    <Mail size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                                                    <input 
+                                                        type="email"
+                                                        value={emailInput}
+                                                        onChange={(e) => setEmailInput(e.target.value)}
+                                                        placeholder="seu@email.com"
+                                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-night border border-slate-800 text-sm text-ivory placeholder-slate-600 focus:outline-none focus:border-amber-rest transition-all"
+                                                    />
+                                                </div>
+                                                {loginError && (
+                                                    <span className="text-xs text-rose-400 mt-1 block">{loginError}</span>
+                                                )}
+                                            </div>
+
+                                            <button 
+                                                type="submit"
+                                                className="w-full py-3 rounded-xl bg-amber-rest text-night font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2 mt-1"
+                                            >
+                                                Acessar Minhas Sessões <ArrowRight size={16} />
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-slate-800/60 text-center">
+                                        <p className="text-xs text-slate-500">
+                                            Dificuldade para acessar? Nosso suporte libera imediatamente através do WhatsApp oficial da sua compra.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
+                        )}
 
-                            {/* Sessions Overview */}
-                            <div className="flex flex-col gap-6">
-                                <h2 className="font-sora text-2xl font-semibold">As Quatro Sessões</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* TELA 2: PAINEL DE SESSÕES (DASHBOARD DO ALUNO) */}
+                        {view === 'dashboard' && (
+                            <div className="flex flex-col gap-6 animate-fade-in">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h2 className="font-sora text-2xl font-semibold text-ivory">Escolha sua Pausa</h2>
+                                        <p className="text-slate-400 text-sm mt-0.5">Selecione a condução ideal para o seu estado de alerta agora.</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setView('understand')}
+                                        className="text-xs px-3 py-2 rounded-lg bg-night-card border border-slate-800 text-amber-rest hover:border-amber-rest/60 flex items-center gap-1.5 transition-all"
+                                    >
+                                        <HelpCircle size={14} /> Entender o Método
+                                    </button>
+                                </div>
+
+                                {/* Banner de Fones Recomendados */}
+                                <div className="p-3.5 rounded-xl bg-night-card/70 border border-slate-800/80 flex items-center gap-3 text-xs text-slate-400">
+                                    <div className="p-2 rounded-lg bg-amber-rest/10 text-amber-rest shrink-0">
+                                        <Headphones size={16} />
+                                    </div>
+                                    <span>Recomendamos o uso de fones de ouvido para condução binaural e isolamento de ruído.</span>
+                                </div>
+
+                                {/* Grid das 4 Sessões */}
+                                <div className="flex flex-col gap-3">
                                     {SESSIONS.map((s) => (
-                                        <div key={s.id} className="bg-night-card border border-slate-800 p-6 rounded-xl flex flex-col justify-between gap-4">
+                                        <div 
+                                            key={s.id} 
+                                            onClick={() => startSession(s)}
+                                            className="bg-night-card border border-slate-800/90 hover:border-amber-rest/60 p-5 rounded-2xl flex flex-col gap-3 cursor-pointer transition-all bg-night-hover group shadow-md"
+                                        >
                                             <div className="flex justify-between items-start">
-                                                <span className="font-sora font-semibold text-xl text-ivory">{s.name}</span>
-                                                <span className="text-xs px-2.5 py-1 rounded-full bg-night border border-slate-700 text-amber-rest">
-                                                    {s.durationText}
-                                                </span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[11px] text-amber-rest uppercase tracking-wider font-semibold">
+                                                        {s.tag}
+                                                    </span>
+                                                    <span className="font-sora font-semibold text-xl text-ivory group-hover:text-amber-rest transition-colors">
+                                                        {s.name}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {completedSessions.includes(s.id) && (
+                                                        <span className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-900/50">
+                                                            <CheckCircle2 size={11} /> Realizada
+                                                        </span>
+                                                    )}
+                                                    <span className="text-xs px-2.5 py-1 rounded-full bg-night border border-slate-700 text-amber-rest font-mono">
+                                                        {s.durationText}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <p className="text-slate-400 text-sm">{s.context}</p>
+                                            <p className="text-slate-400 text-sm leading-relaxed">{s.context}</p>
+                                            <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-rest pt-1">
+                                                <span>Iniciar condução</span>
+                                                <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
+                        )}
 
-                            {/* Offer Section */}
-                            <div className="bg-night-card border border-amber-rest/30 p-8 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6">
-                                <div className="flex flex-col gap-2">
-                                    <span className="text-amber-rest text-xs font-semibold tracking-wider uppercase">Acesso Vitalício</span>
-                                    <h3 className="font-sora text-2xl font-bold">Pagamento único, sem assinaturas</h3>
-                                    <p className="text-slate-400 text-sm">Garantia de 7 dias. Acesso imediato à plataforma web.</p>
-                                </div>
-                                <div className="flex flex-col items-center md:items-end gap-3">
-                                    <span className="font-sora text-3xl font-bold text-amber-rest">R$ 27</span>
+                        {/* TELA 3: PLAYER DE CONDUÇÃO */}
+                        {view === 'player' && selectedSession && (
+                            <div className="flex flex-col items-center justify-center gap-8 py-8 animate-fade-in">
+                                <div className="w-full flex justify-start">
                                     <button 
-                                        onClick={handleLogin}
-                                        className="px-6 py-3 rounded-xl bg-amber-rest text-night font-semibold hover:opacity-90 transition-all"
+                                        onClick={() => setView('dashboard')}
+                                        className="text-xs px-3 py-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-400 hover:text-ivory flex items-center gap-1.5 transition-all"
                                     >
-                                        Garantir Meu Acesso
+                                        <ArrowLeft size={13} /> Voltar ao Painel
                                     </button>
                                 </div>
-                            </div>
 
-                            {/* FAQ Section */}
-                            <div className="flex flex-col gap-4">
-                               <h2 className="font-sora text-2xl font-semibold">Dúvidas Frequentes</h2>
-                               {[
-                                   { q: "Como acesso o aplicativo?", a: "O acesso é feito diretamente pelo navegador do seu celular ou computador, sem necessidade de baixar nada nas lojas de aplicativos." },
-                                   { q: "O conteúdo funciona offline?", a: "Não prometemos funcionamento offline ou downloads de áudio. É necessária conexão com a internet para reproduzir as sessões." },
-                                   { q: "Isto substitui terapia ou tratamento médico?", a: "Não. O Modo Descanso é uma ferramenta de bem-estar para gerenciamento de pausas, não substituindo acompanhamento profissional." }
-                               ].map((faq, index) => (
-                                   <div key={index} className="bg-night-card border border-slate-800 rounded-xl overflow-hidden">
-                                       <button 
-                                           onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                                           className="w-full p-4 text-left flex justify-between items-center font-medium"
-                                       >
-                                           <span>{faq.q}</span>
-                                           {openFaq === index ? <ChevronUp size={18} className="text-amber-rest" /> : <ChevronDown size={18} />}
-                                       </button>
-                                       {openFaq === index && (
-                                           <div className="px-4 pb-4 text-slate-400 text-sm border-t border-slate-800/50 pt-2">
-                                               {faq.a}
-                                           </div>
-                                       )}
-                                   </div>
-                               ))}
-                            </div>
-
-                            {/* Limits & Safety Warning */}
-                            <div className="p-6 rounded-xl bg-night-card border border-slate-800 flex flex-col gap-3 text-xs text-slate-400">
-                                <div className="flex items-center gap-2 text-amber-rest font-semibold">
-                                    <Shield size={16} /> Aviso de Limites e Segurança
+                                <div className="flex flex-col items-center gap-2 text-center max-w-sm">
+                                    <span className="text-amber-rest text-xs uppercase tracking-wider font-semibold">
+                                        {selectedSession.tag}
+                                    </span>
+                                    <h2 className="font-sora text-3xl font-bold text-ivory">{selectedSession.name}</h2>
+                                    <p className="text-slate-400 text-sm">{selectedSession.context}</p>
                                 </div>
-                                <p>
-                                    Este produto não realiza diagnósticos e não promete curas ou sono garantido. Caso esteja passando por uma crise severa ou risco imediato, ligue para o CVV 188 (Centro de Valorização da Vida) ou procure ajuda profissional especializada imediatamente.
-                                </p>
-                            </div>
-                        </div>
-                    )}
 
-                    {/* AUTHENTICATED VIEW: APP HOME */}
-                    {view === 'app' && (
-                        <div className="flex flex-col gap-8 animate-fade-in">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h2 className="font-sora text-2xl font-semibold">Escolha sua Pausa</h2>
-                                    <p className="text-slate-400 text-sm">Selecione o formato ideal para o seu momento atual.</p>
+                                {/* Visualizador Circular da Rampa de Descida */}
+                                <div className="relative w-56 h-56 rounded-full border-2 border-slate-800 flex flex-col items-center justify-center bg-night-card shadow-2xl overflow-hidden">
+                                    <div className="absolute inset-0 rounded-full border-2 border-amber-rest animate-breathe"></div>
+                                    <span className="font-sora text-5xl font-bold text-ivory tracking-tight font-mono">
+                                        {formatTime(timeLeft)}
+                                    </span>
+                                    <span className="text-xs text-slate-400 mt-2">de {selectedSession.durationText}</span>
                                 </div>
-                                <button 
-                                    onClick={() => setView('understand')}
-                                    className="text-xs px-3 py-2 rounded-lg bg-night-card border border-slate-800 text-amber-rest hover:border-amber-rest flex items-center gap-1.5"
-                                >
-                                    <HelpCircle size={14} /> Entender a Prática
-                                </button>
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {SESSIONS.map((s) => (
-                                    <div 
-                                        key={s.id} 
-                                        onClick={() => startSession(s)}
-                                        className="bg-night-card border border-slate-800 hover:border-amber-rest/50 p-6 rounded-xl flex flex-col justify-between gap-6 cursor-pointer transition-all bg-night-hover"
+                                {/* Controles do Player */}
+                                <div className="flex items-center gap-4">
+                                    <button 
+                                        onClick={() => setTimeLeft(totalDuration)}
+                                        className="p-3.5 rounded-full bg-night-card border border-slate-800 text-slate-300 hover:text-amber-rest hover:border-slate-700 transition-all shadow-md"
+                                        title="Reiniciar Sessão"
                                     >
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <span className="font-sora font-semibold text-xl text-ivory block">{s.name}</span>
-                                                <span className="text-amber-rest text-xs font-medium">{s.durationText} de condução</span>
-                                            </div>
-                                            {completedSessions.includes(s.id) && (
-                                                <span className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-950/30 px-2 py-1 rounded-full border border-emerald-900/50">
-                                                    <CheckCircle2 size={12} /> Realizada
-                                                </span>
+                                        <RotateCcw size={20} />
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsPlaying(!isPlaying)}
+                                        className="p-6 rounded-full bg-amber-rest text-night hover:opacity-90 transition-all shadow-xl active:scale-95"
+                                        title={isPlaying ? "Pausar" : "Tocar"}
+                                    >
+                                        {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
+                                    </button>
+                                    <button 
+                                        onClick={() => setView('dashboard')}
+                                        className="p-3.5 rounded-full bg-night-card border border-slate-800 text-slate-300 hover:text-rose-400 hover:border-slate-700 transition-all shadow-md"
+                                        title="Encerrar"
+                                    >
+                                        <Square size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="text-xs text-slate-500 text-center max-w-xs flex items-center justify-center gap-1.5">
+                                    <Headphones size={13} className="text-slate-400 shrink-0" />
+                                    <span>Ajuste o volume para um nível suave antes de iniciar.</span>
+                                </div>
+
+                                {/* Pós-prática se concluída */}
+                                {timeLeft === 0 && (
+                                    <div className="w-full max-w-md bg-night-card border border-slate-800 p-6 rounded-2xl flex flex-col gap-4 animate-fade-in shadow-xl">
+                                        <div className="flex items-center justify-center gap-2 text-emerald-400 text-sm font-semibold">
+                                            <CheckCircle2 size={16} /> Prática Concluída
+                                        </div>
+                                        <p className="text-slate-300 text-sm text-center">
+                                            Permita-se ficar alguns instantes em silêncio antes de retomar as atividades.
+                                        </p>
+                                        <div className="flex gap-2 pt-2">
+                                            <button 
+                                                onClick={() => setTimeLeft(totalDuration)}
+                                                className="flex-1 py-2.5 rounded-xl bg-night border border-slate-700 text-xs font-medium hover:border-amber-rest transition-colors"
+                                            >
+                                                Repetir
+                                            </button>
+                                            <button 
+                                                onClick={() => setView('dashboard')}
+                                                className="flex-1 py-2.5 rounded-xl bg-amber-rest text-night text-xs font-semibold hover:opacity-90 transition-all"
+                                            >
+                                                Voltar ao Painel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TELA 4: ENTENDER O MÉTODO */}
+                        {view === 'understand' && (
+                            <div className="flex flex-col gap-6 animate-fade-in">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h2 className="font-sora text-2xl font-semibold text-ivory">Entender a Prática</h2>
+                                        <p className="text-slate-400 text-sm">Os fundamentos neurofisiológicos do Modo Descanso.</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setView('dashboard')}
+                                        className="text-xs px-3 py-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-300 hover:text-ivory"
+                                    >
+                                        Voltar
+                                    </button>
+                                </div>
+
+                                <div className="flex flex-col gap-3">
+                                    {[
+                                        { 
+                                            q: "O que é o estado de Alerta Ligado?", 
+                                            a: "É quando o corpo e a mente permanecem em prontidão excessiva mesmo após o término das exigências do dia. O sistema simpático não desliga sozinho, gerando tensão crônica leve e fadiga ao acordar." 
+                                        },
+                                        { 
+                                            q: "Como funciona a Rampa de Descida?", 
+                                            a: "Tentar parar uma mente acelerada de forma abrupta gera frustração. A rampa utiliza frequências sonoras e ritmos respiratórios decrescentes para desacelerar o sistema nervoso gradualmente, sem esforço mental." 
+                                        },
+                                        { 
+                                            q: "Preciso ter experiência prévia com meditação?", 
+                                            a: "Não. O Modo Descanso não é meditação contemplativa nem exige esvaziar a mente. Trata-se de uma resposta fisiológica direta: basta colocar os fones e permitir que a condução faça o trabalho." 
+                                        },
+                                        { 
+                                            q: "O que fazer se sentir desconforto ou ansiedade?", 
+                                            a: "Interrompa a qualquer momento. O descanso não deve ser forçado. Respire no seu próprio ritmo natural e retome apenas quando se sentir confortável." 
+                                        }
+                                    ].map((item, index) => (
+                                        <div key={index} className="bg-night-card border border-slate-800/80 rounded-xl overflow-hidden shadow-sm">
+                                            <button 
+                                                onClick={() => setOpenUnderstand(openUnderstand === index ? null : index)}
+                                                className="w-full p-4 text-left flex justify-between items-center font-medium text-sm text-ivory hover:text-amber-rest transition-colors"
+                                            >
+                                                <span>{item.q}</span>
+                                                {openUnderstand === index ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
+                                            </button>
+                                            {openUnderstand === index && (
+                                                <div className="px-4 pb-4 text-slate-400 text-xs md:text-sm border-t border-slate-800/50 pt-3 leading-relaxed">
+                                                    {item.a}
+                                                </div>
                                             )}
                                         </div>
-                                        <p className="text-slate-400 text-sm">{s.context}</p>
-                                        <div className="flex items-center gap-2 text-xs font-semibold text-amber-rest">
-                                            Iniciar Sessão <ArrowRight size={14} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* UNDERSTAND VIEW */}
-                    {view === 'understand' && (
-                        <div className="flex flex-col gap-6 animate-fade-in">
-                            <div className="flex justify-between items-center">
-                                <h2 className="font-sora text-2xl font-semibold">Entender a Prática</h2>
-                                <button 
-                                    onClick={() => setView('app')}
-                                    className="text-xs px-3 py-2 rounded-lg bg-night-card border border-slate-800 text-slate-300"
-                                >
-                                    Voltar ao Início
-                                </button>
-                            </div>
-
-                            <div className="flex flex-col gap-4">
-                                {[
-                                    { q: "O que é o estado de Alerta Ligado?", a: "É quando o corpo e a mente permanecem em prontidão excessiva mesmo após o término das exigências do dia, gerando tensão crônica leve e dificuldade de relaxamento." },
-                                    { q: "Como funciona a Rampa de Descida?", a: "Em vez de tentar desligar a mente abruptamente, a rampa utiliza estímulos auditivos e respiratórios graduais para desacelerar o sistema nervoso com o mínimo de atrito." },
-                                    { q: "O que fazer se sentir desconforto?", a: "Interrompa imediatamente. O descanso não deve ser forçado. Se a mente acelerar ou houver resistência, permita-se apenas respirar no seu próprio ritmo." }
-                                ].map((item, index) => (
-                                    <div key={index} className="bg-night-card border border-slate-800 rounded-xl overflow-hidden">
-                                        <button 
-                                            onClick={() => setOpenUnderstand(openUnderstand === index ? null : index)}
-                                            className="w-full p-4 text-left flex justify-between items-center font-medium"
-                                        >
-                                            <span>{item.q}</span>
-                                            {openUnderstand === index ? <ChevronUp size={18} className="text-amber-rest" /> : <ChevronDown size={18} />}
-                                        </button>
-                                        {openUnderstand === index && (
-                                            <div className="px-4 pb-4 text-slate-400 text-sm border-t border-slate-800/50 pt-2">
-                                                {item.a}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* SESSION PLAYER VIEW */}
-                    {view === 'session' && selectedSession && (
-                        <div className="flex flex-col items-center justify-center gap-8 py-12 animate-fade-in">
-                            <div className="flex flex-col items-center gap-2 text-center">
-                                <span className="text-amber-rest text-xs uppercase tracking-wider font-semibold">Sessão Ativa</span>
-                                <h2 className="font-sora text-3xl font-bold">{selectedSession.name}</h2>
-                                <p className="text-slate-400 text-sm max-w-sm">{selectedSession.context}</p>
-                            </div>
-
-                            {/* Visual Player Timer */}
-                            <div className="relative w-48 h-48 rounded-full border-2 border-slate-800 flex flex-col items-center justify-center bg-night-card shadow-xl">
-                                <div className="absolute inset-0 rounded-full border-2 border-amber-rest animate-pulse opacity-30"></div>
-                                <span className="font-sora text-4xl font-bold text-ivory">{formatTime(timeLeft)}</span>
-                                <span className="text-xs text-slate-400 mt-1">de {selectedSession.durationText}</span>
-                            </div>
-
-                            {/* Controls */}
-                            <div className="flex items-center gap-4">
-                                <button 
-                                    onClick={() => setTimeLeft(totalDuration)}
-                                    className="p-3 rounded-full bg-night-card border border-slate-800 text-slate-300 hover:text-amber-rest transition-all"
-                                    title="Reiniciar"
-                                >
-                                    <RotateCcw size={20} />
-                                </button>
-                                <button 
-                                    onClick={() => setIsPlaying(!isPlaying)}
-                                    className="p-5 rounded-full bg-amber-rest text-night hover:opacity-90 transition-all shadow-lg"
-                                >
-                                    {isPlaying ? <Pause size={24} /> : <Play size={24} className="ml-0.5" />}
-                                </button>
-                                <button 
-                                    onClick={() => setView('app')}
-                                    className="p-3 rounded-full bg-night-card border border-slate-800 text-slate-300 hover:text-red-400 transition-all"
-                                    title="Encerrar"
-                                >
-                                    <Square size={20} />
-                                </button>
-                            </div>
-
-                            {/* Placeholder Notice */}
-                            <div className="text-xs text-slate-500 text-center max-w-xs">
-                                Conteúdo em ambiente seguro. Os masters de áudio definitivos serão integrados em breve.
-                            </div>
-
-                            {/* Post-practice option if finished */}
-                            {timeLeft === 0 && (
-                                <div className="w-full max-w-md bg-night-card border border-slate-800 p-6 rounded-xl flex flex-col gap-4 mt-4 animate-fade-in">
-                                    <h3 className="font-sora font-semibold text-lg text-center">Pausa Concluída</h3>
-                                    <p className="text-slate-400 text-sm text-center">Como você deseja prosseguir?</p>
-                                    <div className="flex gap-2">
-                                        <button 
-                                            onClick={() => setTimeLeft(totalDuration)}
-                                            className="flex-1 py-2.5 rounded-lg bg-night border border-slate-700 text-xs font-medium hover:border-amber-rest"
-                                        >
-                                            Repetir Sessão
-                                        </button>
-                                        <button 
-                                            onClick={() => setView('app')}
-                                            className="flex-1 py-2.5 rounded-lg bg-amber-rest text-night text-xs font-semibold hover:opacity-90"
-                                        >
-                                            Escolher Outra
-                                        </button>
-                                    </div>
+                                    ))}
                                 </div>
-                            )}
-                        </div>
-                    )}
+                            </div>
+                        )}
+                    </div>
 
-                    {/* Footer */}
-                    <footer className="border-t border-slate-800 pt-6 text-center text-xs text-slate-500 flex flex-col gap-2">
-                        <p>MODO DESCANSO · Condução breve para estados de alerta.</p>
-                        <p>Em caso de risco imediato, ligue CVV 188.</p>
+                    {/* Rodapé do App */}
+                    <footer className="border-t border-slate-800/80 pt-6 mt-8 text-center text-xs text-slate-500 flex flex-col gap-2">
+                        <div className="flex items-center justify-center gap-1.5 text-slate-400">
+                            <Shield size={13} className="text-amber-rest" />
+                            <span>Ambiente exclusivo para praticantes do Modo Descanso</span>
+                        </div>
+                        <p>Em caso de crise ou sofrimento emocional agudo, ligue para o CVV 188.</p>
                     </footer>
                 </div>
             );
