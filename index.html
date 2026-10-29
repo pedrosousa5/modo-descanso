@@ -84,6 +84,15 @@
             transform: rotateY(180deg);
         }
 
+        /* Transição suave de slides do carrossel */
+        .slide-enter {
+            animation: fadeInSlide 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(10px) scale(0.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         /* Custom range slider para áudio */
         input[type=range] {
             accent-color: #D6A86A;
@@ -96,7 +105,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Helper para renderizar ícones Lucide
         const createIcon = (name) => ({ size = 20, className = "" }) => {
             const data = (window.lucide && window.lucide[name]) || [];
             return (
@@ -122,12 +130,9 @@
         const Square = createIcon('Square');
         const RotateCcw = createIcon('RotateCcw');
         const RotateCw = createIcon('RotateCw');
-        const ChevronDown = createIcon('ChevronDown');
-        const ChevronUp = createIcon('ChevronUp');
         const Shield = createIcon('Shield');
         const Sparkles = createIcon('Sparkles');
         const Headphones = createIcon('Headphones');
-        const HelpCircle = createIcon('HelpCircle');
         const ArrowRight = createIcon('ArrowRight');
         const ArrowLeft = createIcon('ArrowLeft');
         const CheckCircle2 = createIcon('CheckCircle2');
@@ -136,16 +141,16 @@
         const Volume2 = createIcon('Volume2');
         const VolumeX = createIcon('VolumeX');
         const BookOpen = createIcon('BookOpen');
-        const Heart = createIcon('Heart');
-        const Compass = createIcon('Compass');
         const FileText = createIcon('FileText');
         const Check = createIcon('Check');
         const Activity = createIcon('Activity');
-        const Sun = createIcon('Sun');
         const Moon = createIcon('Moon');
         const Zap = createIcon('Zap');
+        const X = createIcon('X');
+        const AlertTriangle = createIcon('AlertTriangle');
+        const ChevronRight = createIcon('ChevronRight');
+        const ChevronLeft = createIcon('ChevronLeft');
 
-        // Ícone oficial do Google
         const GoogleIcon = ({ size = 18 }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" className="shrink-0">
                 <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
@@ -154,6 +159,205 @@
                 <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
             </svg>
         );
+
+        const MODULE_CAROUSELS = {
+            'seguranca': {
+                title: 'Manual de Fundamentos & Segurança',
+                subtitle: 'A mecânica biológica e a regra de ouro para praticar com tranquilidade',
+                icon: Shield,
+                badge: 'Fundamentos',
+                slides: [
+                    {
+                        tag: 'A Regra Fundamental',
+                        title: 'A Regra de Ouro da Prática',
+                        highlight: 'O descanso nunca deve ser forçado. O corpo dita o ritmo.',
+                        paragraphs: [
+                            'Sempre comece de forma suave e escute com atenção os sinais do seu corpo.',
+                            'Se em qualquer momento surgir desconforto, tontura acentuada ou sensação de mal-estar, retorne imediatamente à sua respiração natural espontânea e fique em repouso.',
+                            'A proposta desta prática é desarmar o alarme interno, nunca entrar em disputa de resistência física com o organismo.'
+                        ]
+                    },
+                    {
+                        tag: 'A Mecânica Tríplice',
+                        title: 'Os 3 Pilares da Respiração SOMA',
+                        highlight: 'Uma sequência desenhada para sincronizar o sistema nervoso.',
+                        paragraphs: [
+                            '1. Respiração Nasal & Rítmica: O ar entra exclusivamente pelo nariz, saturando os tecidos e estimulando o óxido nítrico, um potente vasodilatador endógeno.',
+                            '2. Kumbhaka (Pausa com Pulmões Vazios): A retenção simula um estresse benéfico (hormese) que sinaliza regeneração celular e biogênese mitocondrial.',
+                            '3. Tonificação Vocal (Humming): A ressonância sonora na garganta e tórax massageia o nervo vago, virando a chave para o parassimpático.'
+                        ]
+                    },
+                    {
+                        tag: 'Passo a Passo Físico',
+                        title: 'Como se Posicionar para Praticar',
+                        highlight: 'Apenas fone e postura confortável. Nada mais.',
+                        paragraphs: [
+                            'Postura: Sente-se confortavelmente com as costas retas ou deite-se de barriga para cima, sem tensões nos ombros ou maxilares.',
+                            'Condução: Basta apertar o play, fechar os olhos e permitir que a voz e as batidas guiem os tempos de inspiração e expiração.',
+                            'Transição Suave: Ao final do áudio, não levante correndo. Dê a si mesmo 60 segundos de silêncio para ancorar o novo estado no corpo.'
+                        ]
+                    },
+                    {
+                        tag: 'Lembrete Médico',
+                        title: 'Limites de Saúde & Atenção Especial',
+                        highlight: 'Informação transparente para o seu bem-estar.',
+                        paragraphs: [
+                            'Como você já viu no aviso de entrada: gestantes, pessoas com hipertensão arterial grave não controlada, histórico de crises convulsivas/epilepsia ou portadores de marca-passo devem evitar retenções prolongadas.',
+                            'Nesses casos, realize todas as sessões respirando continuamente no seu ritmo habitual, colhendo o relaxamento das frequências sonoras e da condução vocal.'
+                        ]
+                    }
+                ]
+            },
+            'mod1': {
+                title: 'A Ciência da Pausa & THI',
+                subtitle: 'Como a hipóxia intermitente benéfica restaura a energia celular',
+                icon: Activity,
+                badge: 'Módulo 1',
+                slides: [
+                    {
+                        tag: 'Mecanismo Biológico',
+                        title: 'O THI sem Máquinas de Clínica',
+                        highlight: 'A mesma tecnologia de clínicas de longevidade, acionada pelos seus próprios pulmões.',
+                        paragraphs: [
+                            'Em centros médicos avançados, o Treinamento Hipóxico Intermitente (THI) é feito com aparelhos caros que alternam ar com mais e menos oxigênio enquanto o paciente descansa.',
+                            'O Modo Descanso gera essa mesma alternância biológica de forma autônoma: a respiração rítmica satura as células, e a retenção breve com pulmões vazios (Kumbhaka) ativa a resposta celular da pausa.'
+                        ]
+                    },
+                    {
+                        tag: 'Hormese Celular',
+                        title: 'O Princípio da Adaptação Inteligente',
+                        highlight: 'Um estímulo breve e controlado que fortalece a sua imunidade.',
+                        paragraphs: [
+                            'Biogênese Mitocondrial: A pausa controlada sinaliza às células que é hora de gerar novas mitocôndrias mais eficientes, combatendo a sensação de cansaço crônico.',
+                            'Síntese Natural de EPO: O corpo otimiza a oxigenação sanguínea sem substâncias externas.',
+                            'Reparo de Tecidos: Estímulo à circulação de fatores regenerativos nos tecidos cansados pelo ritmo acelerado.'
+                        ]
+                    },
+                    {
+                        tag: 'Resultados no Corpo',
+                        title: 'O Impacto nos 4 Sistemas Vitais',
+                        highlight: 'Clareza na mente, serenidade no peito e energia estável.',
+                        paragraphs: [
+                            'Cérebro: Mais foco no córtex pré-frontal e diminuição imediata do ruído mental de fundo.',
+                            'Coração: Redução dos batimentos de repouso e ganho na variabilidade da frequência cardíaca.',
+                            'Sono & Reparo: Transição mais rápida para o sono de ondas lentas restaurador.'
+                        ]
+                    }
+                ]
+            },
+            'mod2': {
+                title: 'Imersão Sonora & Frequências',
+                subtitle: 'Arrastamento de ondas cerebrais por tons isocrônicos em áudio 3D',
+                icon: Zap,
+                badge: 'Módulo 2',
+                slides: [
+                    {
+                        tag: 'Física do Som',
+                        title: 'O Efeito Diapasão no Seu Cérebro',
+                        highlight: 'Seu cérebro sincroniza com o ritmo acústico sem que você precise forçar a mente.',
+                        paragraphs: [
+                            'Se você tocar um diapasão perto de uma corda afinada na mesma frequência, ela começa a vibrar sozinha por ressonância.',
+                            'O cérebro funciona de forma análoga: pulsos sonoros calibrados (Brainwave Entrainment) convidam a atividade elétrica cerebral a desacelerar suavemente.'
+                        ]
+                    },
+                    {
+                        tag: 'Tons Isocrônicos',
+                        title: 'Por Que Usamos Tons Isocrônicos',
+                        highlight: 'Pulsos rítmicos de alta precisão que dispensam o esforço de concentração.',
+                        paragraphs: [
+                            'Diferente de músicas comuns ou ruídos estáticos, os tons isocrônicos entregam pulsos claros que desarmam o estado de hipervigilância.',
+                            'Ao utilizar fones de ouvido, o áudio espacial cria um campo sonoro envolvente que isola distrações da sala e traz presença imediata.'
+                        ]
+                    },
+                    {
+                        tag: 'Espectro de Frequências',
+                        title: 'As Ondas do Descanso e Criatividade',
+                        highlight: 'Saindo de Beta (estresse) e navegando entre Alfa e Theta.',
+                        paragraphs: [
+                            'Beta: Estado de alerta, tarefas e prazos. Quando constante, vira exaustão.',
+                            'Alfa (8 a 12 Hz): Relaxamento lúcido. A mente fica calma, criativa e sem pressa.',
+                            'Theta (4 a 8 Hz): O portal subconsciente. O limiar profundo onde tensões emocionais antigas são desatadas.'
+                        ]
+                    }
+                ]
+            },
+            'mod3': {
+                title: 'Reescrevendo o Subconsciente & Journaling',
+                subtitle: 'O elo essencial: abrindo o portal Alfa/Theta para reprogramar crenças e capturar downloads no papel',
+                icon: FileText,
+                badge: 'Módulo 3',
+                slides: [
+                    {
+                        tag: 'O Elo com o Módulo 2',
+                        title: 'Abrir o Portal e Entrar por Ele',
+                        highlight: 'Não é só respirar: é o que acontece quando a mente crítica solta a guarda.',
+                        paragraphs: [
+                            'O Módulo 2 mostrou como os tons isocrônicos desaceleram o cérebro até as ondas Alfa e Theta. Isso é abrir o portal neurofisiológico.',
+                            'Mas abrir a porta sem entrar por ela não gera transformação permanente. É no estado Theta que o filtro crítico do córtex pré-frontal diminui suas barreiras.',
+                            'É exatamente aqui que as sessões do Modo Descanso utilizam linguagem hipnótica somática para dialogar diretamente com o subconsciente, reescrevendo crenças limitantes de sobrecarga e autossabotagem.'
+                        ]
+                    },
+                    {
+                        tag: 'Reprogramação de Padrões',
+                        title: 'Desarmando a Prontidão Permanente',
+                        highlight: 'Substituindo o hábito de urgência pela certeza de comando interior.',
+                        paragraphs: [
+                            'Você não vive sobrecarregado(a) por falta de vontade de relaxar. Você opera assim porque o seu subconsciente aprendeu que estar em alerta permanente era o único jeito seguro de funcionar.',
+                            'Durante a condução das sessões, cada repetição envia um sinal biológico profundo: "o controle pode ser solto agora".',
+                            'Com o tempo, o corpo desaprende a resposta de pânico automático e reaprende a responder aos desafios com presença serena.'
+                        ]
+                    },
+                    {
+                        tag: 'O Papel do Journaling',
+                        title: 'Capture os Downloads no Seu Papel',
+                        highlight: 'Tenha sempre um caderno e caneta por perto. A intimidade do papel é insubstituível.',
+                        paragraphs: [
+                            'Durante ou logo após a prática em ondas Theta, é comum emergirem clarezas espontâneas, ideias súbitas e intuições sobre problemas que pareciam travados — chamamos isso de "downloads".',
+                            'Por isso, não colocamos campos de digitação dentro do app. O app existe para guiar sua experiência; o seu caderno físico íntimo (ou bloco de notas pessoal) é onde a sua mente se abre com verdade.',
+                            'Tenha sempre papel e caneta ao lado do seu tapete ou cama. Ao concluir a sessão, anote em 2 minutos o que veio à tona antes que o turbilhão do dia apague a clareza.'
+                        ]
+                    }
+                ]
+            },
+            'mod4': {
+                title: 'Técnicas Respiratórias Offline',
+                subtitle: 'Autorregulação autonômica sem celular, sem fones e em qualquer lugar',
+                icon: Moon,
+                badge: 'Módulo 4',
+                slides: [
+                    {
+                        tag: 'Técnica 1 · Parassimpático',
+                        title: 'Ativação do Sistema Parassimpático',
+                        highlight: 'Respiração circular com duração dobrada na expiração.',
+                        paragraphs: [
+                            'Mecânica: Inale suavemente pelo nariz contando até 4 segundos e exale devagar contando até 8 segundos, em um fluxo circular contínuo sem travas.',
+                            'Por que funciona: A expiração prolongada estimula diretamente os barorreceptores cardíacos, desacelerando a frequência dos batimentos em segundos.',
+                            'Quando usar: Momentos de pico de ansiedade, trânsito tenso ou antes de responder a uma mensagem que tirou sua paz.'
+                        ]
+                    },
+                    {
+                        tag: 'Técnica 2 · Foco sob Pressão',
+                        title: 'Box Breathing (Respiração Quadrada)',
+                        highlight: 'Pausas iguais entre as inspirações e as expirações.',
+                        paragraphs: [
+                            'Mecânica dos 4 tempos iguais: Inale em 4s · Retenha cheio em 4s · Exale em 4s · Retenha vazio em 4s.',
+                            'Por que funciona: Utilizada por operadores táticos e atletas de alta performance, a simetria com retenção estabiliza o sistema nervoso autonômico e devolve o comando racional.',
+                            'Quando usar: Minutos antes de entrar em uma negociação importante, apresentação pública ou tomada de decisão difícil.'
+                        ]
+                    },
+                    {
+                        tag: 'Técnica 3 · Sincronia Total',
+                        title: 'Coerência Cardíaca',
+                        highlight: 'Respiração circular com a mesma duração na inspiração e expiração.',
+                        paragraphs: [
+                            'Mecânica: Inale suavemente pelo nariz em 5 segundos e exale sem pausa em 5 segundos (completando 6 respirações por minuto).',
+                            'Por que funciona: Cria um acoplamento ressonante perfeito entre a frequência cardíaca e as ondas da pressão arterial, dissipando a fadiga mental.',
+                            'Quando usar: No início do dia para alinhar o foco ou na transição da tarde para limpar a cabeça antes de continuar o trabalho.'
+                        ]
+                    }
+                ]
+            }
+        };
 
         const SESSIONS = [
             { 
@@ -171,7 +375,7 @@
                 duration: 300, 
                 durationText: '5 min', 
                 tag: 'Pausa Rápida',
-                context: 'Rampa de descida curta para restaurar o eixo no meio da rotina e acalmar os batimentos.',
+                context: 'Uma rampa de descida curta no meio do dia, perfeita após uma reunião tensa ou momento de agitação para recuperar o eixo.',
                 audioSrc: 'audio/onda-5.mp3'
             },
             { 
@@ -179,8 +383,8 @@
                 name: 'ONDA 11', 
                 duration: 660, 
                 durationText: '11 min', 
-                tag: 'Descompressão & Foco',
-                context: 'Transição consciente pós-almoço ou conversa difícil para desarmar a prontidão do corpo.',
+                tag: 'Clareza & Deep Work',
+                context: 'Condução desenhada para ancorar a mente, dissolver dispersões e restaurar o foco sereno antes de produzir, estudar ou criar.',
                 audioSrc: 'audio/onda-11.mp3'
             },
             { 
@@ -188,14 +392,13 @@
                 name: 'ONDA 22', 
                 duration: 1281, 
                 durationText: '22 min', 
-                tag: 'Imersão Noturna',
-                context: 'Condução profunda para desativar o sistema de alerta, desarmar a musculatura e preparar para o sono.',
+                tag: 'Restauração Profunda',
+                context: 'Condução profunda para desativar o sistema de alerta, desarmar a musculatura e restaurar a energia vital em qualquer momento do dia.',
                 audioSrc: 'audio/onda-22.mp3'
             }
         ];
 
         function App() {
-            // Estado do usuário autenticado
             const [currentUser, setCurrentUser] = useState(() => {
                 const saved = localStorage.getItem('modo_descanso_user');
                 return saved ? JSON.parse(saved) : null;
@@ -205,14 +408,28 @@
                 return localStorage.getItem('modo_descanso_user') ? 'dashboard' : 'login';
             });
 
-            // Estado de Flip da tela principal para a tela secundária de educação
             const [isFlipped, setIsFlipped] = useState(false);
 
             const [emailInput, setEmailInput] = useState('');
             const [loginError, setLoginError] = useState('');
             const [isLoading, setIsLoading] = useState(false);
 
-            // Estado do Player de Áudio
+            // Pop-up de Contraindicações
+            const [dontShowAgain, setDontShowAgain] = useState(false);
+            const [consentRecord, setConsentRecord] = useState(() => {
+                const saved = localStorage.getItem('modo_descanso_consent');
+                return saved ? JSON.parse(saved) : null;
+            });
+            const [showConsentModal, setShowConsentModal] = useState(() => {
+                const saved = localStorage.getItem('modo_descanso_consent');
+                return !saved;
+            });
+
+            // Carrossel de Módulos em Tela Cheia
+            const [activeCarouselKey, setActiveCarouselKey] = useState(null);
+            const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+            // Player de Áudio
             const [selectedSession, setSelectedSession] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
             const [currentTime, setCurrentTime] = useState(0);
@@ -226,30 +443,7 @@
                 return saved ? JSON.parse(saved) : [];
             });
 
-            // Estado dos cards expansíveis da página secundária
-            const [expandedModule, setExpandedModule] = useState('seguranca');
-
-            // Estado interativo do Journaling (persiste notas locais)
-            const [journalNotes, setJournalNotes] = useState(() => {
-                const saved = localStorage.getItem('modo_descanso_journal');
-                return saved ? JSON.parse(saved) : {
-                    gratidao: '',
-                    intencao: '',
-                    crenca: '',
-                    sincronicidade: ''
-                };
-            });
-            const [saveStatus, setSaveStatus] = useState(false);
-
-            const handleJournalChange = (field, value) => {
-                const updated = { ...journalNotes, [field]: value };
-                setJournalNotes(updated);
-                localStorage.setItem('modo_descanso_journal', JSON.stringify(updated));
-                setSaveStatus(true);
-                setTimeout(() => setSaveStatus(false), 2000);
-            };
-
-            // Efeito para sincronizar áudio real
+            // Sincronização do Áudio HTML5
             useEffect(() => {
                 const audio = audioRef.current;
                 if (!audio) return;
@@ -276,14 +470,12 @@
                 };
             }, [selectedSession, completedSessions]);
 
-            // Atualização de volume
             useEffect(() => {
                 if (audioRef.current) {
                     audioRef.current.volume = isMuted ? 0 : volume;
                 }
             }, [volume, isMuted]);
 
-            // Verificação de acesso via API /api/verify
             const verifyAndLogin = async (email, provider = 'email', defaultName = '') => {
                 setIsLoading(true);
                 setLoginError('');
@@ -314,7 +506,7 @@
                         }
                     }
                 } catch (e) {
-                    // Fallback se estiver offline ou local
+                    // Fallback
                 }
 
                 const fallbackUser = {
@@ -350,6 +542,28 @@
                 if (audioRef.current) {
                     audioRef.current.pause();
                 }
+            };
+
+            const handleCloseConsent = () => {
+                if (dontShowAgain) {
+                    const record = {
+                        consented: true,
+                        timestamp: new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })
+                    };
+                    setConsentRecord(record);
+                    localStorage.setItem('modo_descanso_consent', JSON.stringify(record));
+                }
+                setShowConsentModal(false);
+            };
+
+            const openModuleCarousel = (key) => {
+                setActiveCarouselKey(key);
+                setCurrentSlideIndex(0);
+            };
+
+            const closeCarousel = () => {
+                setActiveCarouselKey(null);
+                setCurrentSlideIndex(0);
             };
 
             const startSession = (session) => {
@@ -398,9 +612,10 @@
                 return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             };
 
+            const activeCarouselData = activeCarouselKey ? MODULE_CAROUSELS[activeCarouselKey] : null;
+
             return (
-                <div className="w-full max-w-2xl mx-auto px-4 py-6 md:py-10 flex flex-col min-h-screen justify-between">
-                    {/* Elemento de Áudio HTML5 invisível */}
+                <div className="w-full max-w-2xl mx-auto px-4 py-6 md:py-10 flex flex-col min-h-screen justify-between relative">
                     <audio ref={audioRef} preload="auto" />
 
                     <div>
@@ -414,15 +629,13 @@
 
                             {currentUser && (
                                 <div className="flex items-center gap-2.5">
-                                    {/* Botão de Flip: Duas setas circulares para girar entre Sessões e Educação */}
                                     {view === 'dashboard' && (
                                         <button 
                                             onClick={() => setIsFlipped(!isFlipped)} 
-                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-night-card border border-amber-rest/40 hover:border-amber-rest text-amber-rest hover:bg-amber-rest/10 transition-all text-xs font-medium shadow-sm active:scale-95"
-                                            title={isFlipped ? "Girar de volta para as Sessões de Áudio" : "Girar para Educação sobre a Prática & Bônus"}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-night-card border border-amber-rest/40 hover:border-amber-rest text-amber-rest hover:bg-amber-rest/10 transition-all text-xs font-semibold shadow-sm active:scale-95"
                                         >
                                             <RotateCw size={13} className={`transition-transform duration-700 ${isFlipped ? "rotate-180 text-ivory" : ""}`} />
-                                            <span>{isFlipped ? "Ver Sessões" : "Educação & Bônus"}</span>
+                                            <span>{isFlipped ? "Sessões de Áudio" : "Educação & Bônus"}</span>
                                         </button>
                                     )}
 
@@ -512,24 +725,25 @@
                             <div className="flip-scene">
                                 <div className={`flip-card ${isFlipped ? 'is-flipped' : ''}`}>
                                     
-                                    {/* ==================== LADO A (FRENTE): PAINEL DE SESSÕES ==================== */}
-                                    <div className="flip-face flip-front flex flex-col gap-6">
-                                        <div className="flex justify-between items-end">
-                                            <div>
-                                                <h2 className="font-sora text-2xl font-semibold text-ivory">Escolha sua Pausa</h2>
-                                                <p className="text-slate-400 text-sm mt-0.5">Selecione a condução ideal para o seu estado de alerta agora.</p>
-                                            </div>
-                                            <button 
-                                                onClick={() => setIsFlipped(true)}
-                                                className="text-xs px-3 py-1.5 rounded-lg bg-night-card border border-slate-800 text-amber-rest hover:border-amber-rest/60 flex items-center gap-1.5 transition-all shadow-sm"
-                                            >
-                                                <RotateCw size={13} />
-                                                <span className="hidden sm:inline">Virar Cartão:</span> Educação & Bônus
-                                            </button>
+                                    {/* LADO A (FRENTE): PAINEL DE SESSÕES */}
+                                    <div className="flip-face flip-front flex flex-col gap-5">
+                                        <div>
+                                            <h2 className="font-sora text-2xl font-semibold text-ivory">Escolha sua Pausa</h2>
+                                            <p className="text-slate-400 text-sm mt-0.5">Selecione a condução ideal para o seu estado de alerta agora.</p>
                                         </div>
 
+                                        {/* Status discreto de consentimento (se já registrado) */}
+                                        {consentRecord && (
+                                            <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                                                <span className="flex items-center gap-1.5 text-emerald-400">
+                                                    <Check size={14} /> Contraindicações verificadas
+                                                </span>
+                                                <span className="font-mono text-slate-500 text-[11px]">{consentRecord.timestamp}</span>
+                                            </div>
+                                        )}
+
                                         {/* Banner de Fones Recomendados */}
-                                        <div className="p-3.5 rounded-xl bg-night-card/70 border border-slate-800/80 flex items-center gap-3 text-xs text-slate-400">
+                                        <div className="p-3.5 rounded-xl bg-night-card/80 border border-slate-800/90 flex items-center gap-3 text-xs text-slate-400">
                                             <div className="p-2 rounded-lg bg-amber-rest/10 text-amber-rest shrink-0">
                                                 <Headphones size={16} />
                                             </div>
@@ -559,7 +773,7 @@
                                                                     <CheckCircle2 size={11} /> Realizada
                                                                 </span>
                                                             )}
-                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-night border border-slate-700 text-amber-rest font-mono">
+                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-night border border-slate-700 text-amber-rest font-mono font-medium">
                                                                 {s.durationText}
                                                             </span>
                                                         </div>
@@ -575,242 +789,144 @@
                                         </div>
                                     </div>
 
-                                    {/* ==================== LADO B (VERSO): EDUCAÇÃO SOBRE A PRÁTICA & BÔNUS ==================== */}
+                                    {/* LADO B (VERSO): MENU DE APOIO COM CARROSSEL EM TELA CHEIA */}
                                     <div className="flip-face flip-back flex flex-col gap-5">
                                         <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                                             <div>
                                                 <h2 className="font-sora text-2xl font-semibold text-ivory flex items-center gap-2">
                                                     <BookOpen size={22} className="text-amber-rest" /> Educação & Apoio
                                                 </h2>
-                                                <p className="text-slate-400 text-xs mt-0.5">Fundamentos fisiológicos, limites de saúde e ferramentas interativas.</p>
+                                                <p className="text-slate-400 text-xs mt-0.5">Toque em qualquer guia para abrir o carrossel de leitura ampla.</p>
                                             </div>
-                                            <button 
-                                                onClick={() => setIsFlipped(false)}
-                                                className="text-xs px-3 py-1.5 rounded-lg bg-amber-rest text-night font-semibold hover:opacity-90 flex items-center gap-1.5 transition-all shadow-md"
-                                            >
-                                                <RotateCw size={13} />
-                                                <span>Voltar às Sessões</span>
-                                            </button>
                                         </div>
 
-                                        {/* 1. MANUAL DE PRÁTICA SEGURA (DESTAQUE OURO) */}
-                                        <div className="bg-gradient-to-br from-amber-950/20 via-night-card to-night-card border border-amber-rest/40 rounded-2xl p-5 shadow-lg flex flex-col gap-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-center gap-2">
+                                        {/* 1. MANUAL DE PRÁTICA SEGURA (REGRA DE OURO NO TOPO, SEM SELO DE INCLUSO) */}
+                                        <div 
+                                            onClick={() => openModuleCarousel('seguranca')}
+                                            className="bg-gradient-to-br from-amber-950/20 via-night-card to-night-card border border-amber-rest/40 hover:border-amber-rest p-5 rounded-2xl flex flex-col gap-3 shadow-lg cursor-pointer group transition-all"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2.5">
                                                     <div className="p-2 rounded-xl bg-amber-rest/20 text-amber-rest">
                                                         <Shield size={18} />
                                                     </div>
                                                     <div>
-                                                        <span className="text-[10px] text-amber-rest uppercase tracking-wider font-semibold block">Manual de Prática Segura</span>
-                                                        <h3 className="font-sora font-semibold text-lg text-ivory">Fundamentos & Segurança na Prática</h3>
+                                                        <span className="text-[10px] text-amber-rest uppercase tracking-wider font-semibold block">Manual Oficial</span>
+                                                        <h3 className="font-sora font-semibold text-lg text-ivory group-hover:text-amber-rest transition-colors">
+                                                            Fundamentos & Segurança na Prática
+                                                        </h3>
                                                     </div>
                                                 </div>
-                                                <span className="text-[10px] bg-amber-rest/10 text-amber-rest px-2.5 py-1 rounded-full border border-amber-rest/30">Incluso</span>
+                                                <ChevronRight size={18} className="text-amber-rest group-hover:translate-x-1 transition-transform" />
                                             </div>
 
-                                            {/* A Mecânica Tríplice */}
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-xs">
-                                                <div className="p-3 rounded-xl bg-night/80 border border-slate-800/80">
-                                                    <strong className="text-amber-rest block mb-1">1. Respiração Nasal</strong>
-                                                    <span className="text-slate-400">Inalação pelo nariz que satura as células com oxigênio e ativa a produção natural de óxido nítrico.</span>
-                                                </div>
-                                                <div className="p-3 rounded-xl bg-night/80 border border-slate-800/80">
-                                                    <strong className="text-amber-rest block mb-1">2. Kumbhaka (Retenção)</strong>
-                                                    <span className="text-slate-400">Pausa com pulmões vazios estimulando biogênese mitocondrial e regeneração biológica.</span>
-                                                </div>
-                                                <div className="p-3 rounded-xl bg-night/80 border border-slate-800/80">
-                                                    <strong className="text-amber-rest block mb-1">3. Tonificação Vocal</strong>
-                                                    <span className="text-slate-400">O som de zumbido (Humming) faz ressonância no peito e aciona o nervo vago e o parassimpático.</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Matriz de Segurança e Alertas Médicos */}
-                                            <div className="p-3.5 rounded-xl bg-night/90 border border-rose-950/40 text-xs flex flex-col gap-2">
-                                                <div className="flex items-center gap-2 text-rose-400 font-semibold">
-                                                    <Activity size={14} /> Contraindicações Estritas (Evitar apneia prolongada):
-                                                </div>
-                                                <p className="text-slate-400 leading-relaxed">
-                                                    Gravidez, pressão alta pós-infarto não controlada, histórico de crises convulsivas/epilepsia, uso de marca-passo ou arritmia grave. Nestes casos, mantenha apenas respiração suave sem retenção.
+                                            {/* Prioridade: A Regra de Ouro no Topo */}
+                                            <div className="p-3.5 rounded-xl bg-night/90 border border-amber-rest/30 text-xs">
+                                                <strong className="text-amber-rest block mb-1">A Regra de Ouro da Prática:</strong>
+                                                <p className="text-slate-300 text-xs leading-relaxed">
+                                                    Sempre comece suavemente e escute os sinais do corpo. Se surgir qualquer tontura ou mal-estar, retorne imediatamente à sua respiração normal e fique em repouso.
                                                 </p>
-                                                <div className="pt-2 border-t border-slate-800/80 text-amber-rest/90 font-medium">
-                                                    <strong>Regra de Ouro:</strong> Se sentir tontura acentuada ou mal-estar, retorne imediatamente à sua respiração normal e relaxe.
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+                                                <span>A Mecânica Tríplice · Respiração Nasal, Kumbhaka e Humming</span>
+                                                <span className="text-amber-rest font-medium flex items-center gap-1">Abrir Guia &rarr;</span>
+                                            </div>
+                                        </div>
+
+                                        {/* 2. OS 4 MÓDULOS DE APOIO EM CARDS DESTACADOS */}
+                                        <div className="flex flex-col gap-2.5">
+                                            <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Guias & Materiais de Apoio</span>
+                                            
+                                            {/* CARD MÓDULO 1 */}
+                                            <div 
+                                                onClick={() => openModuleCarousel('mod1')}
+                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2.5 rounded-xl bg-night border border-slate-800 text-amber-rest">
+                                                        <Activity size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-amber-rest uppercase font-semibold block">Módulo 1</span>
+                                                        <h4 className="font-sora text-sm font-semibold text-ivory group-hover:text-amber-rest transition-colors">
+                                                            A Ciência da Pausa & THI
+                                                        </h4>
+                                                        <p className="text-xs text-slate-400">Hipóxia intermitente benéfica e biogênese mitocondrial</p>
+                                                    </div>
                                                 </div>
+                                                <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-rest transition-colors" />
+                                            </div>
+
+                                            {/* CARD MÓDULO 2 */}
+                                            <div 
+                                                onClick={() => openModuleCarousel('mod2')}
+                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2.5 rounded-xl bg-night border border-slate-800 text-amber-rest">
+                                                        <Zap size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-amber-rest uppercase font-semibold block">Módulo 2</span>
+                                                        <h4 className="font-sora text-sm font-semibold text-ivory group-hover:text-amber-rest transition-colors">
+                                                            Imersão Sonora & Frequências
+                                                        </h4>
+                                                        <p className="text-xs text-slate-400">Tons isocrônicos e ondas cerebrais Alfa e Theta</p>
+                                                    </div>
+                                                </div>
+                                                <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-rest transition-colors" />
+                                            </div>
+
+                                            {/* CARD MÓDULO 3 (RECONCEITUADO: O PORTAL, CRENÇAS E JOURNALING NO PAPEL) */}
+                                            <div 
+                                                onClick={() => openModuleCarousel('mod3')}
+                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2.5 rounded-xl bg-night border border-slate-800 text-amber-rest">
+                                                        <FileText size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-amber-rest uppercase font-semibold block">Módulo 3</span>
+                                                        <h4 className="font-sora text-sm font-semibold text-ivory group-hover:text-amber-rest transition-colors">
+                                                            Reescrevendo o Subconsciente
+                                                        </h4>
+                                                        <p className="text-xs text-slate-400">O portal Alfa/Theta, crenças e downloads no papel</p>
+                                                    </div>
+                                                </div>
+                                                <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-rest transition-colors" />
+                                            </div>
+
+                                            {/* CARD MÓDULO 4 (AS 3 TÉCNICAS OFFLINE) */}
+                                            <div 
+                                                onClick={() => openModuleCarousel('mod4')}
+                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2.5 rounded-xl bg-night border border-slate-800 text-amber-rest">
+                                                        <Moon size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-amber-rest uppercase font-semibold block">Módulo 4</span>
+                                                        <h4 className="font-sora text-sm font-semibold text-ivory group-hover:text-amber-rest transition-colors">
+                                                            Técnicas Respiratórias Offline
+                                                        </h4>
+                                                        <p className="text-xs text-slate-400">Parassimpático 4:8, Box Breathing e Coerência Cardíaca</p>
+                                                    </div>
+                                                </div>
+                                                <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-rest transition-colors" />
                                             </div>
                                         </div>
 
-                                        {/* 2. OS 4 MÓDULOS BÔNUS INTERATIVOS */}
-                                        <div className="flex flex-col gap-3">
-                                            <h3 className="text-xs uppercase font-semibold text-slate-400 tracking-wider">Módulos de Apoio & Ferramentas Práticas</h3>
-
-                                            {/* MÓDULO 1: A CIÊNCIA DA PAUSA & THI */}
-                                            <div className="bg-night-card border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-                                                <button 
-                                                    onClick={() => setExpandedModule(expandedModule === 'mod1' ? null : 'mod1')}
-                                                    className="w-full p-4 text-left flex justify-between items-center text-sm font-semibold text-ivory hover:text-amber-rest transition-colors"
-                                                >
-                                                    <div className="flex items-center gap-2.5">
-                                                        <Activity size={16} className="text-amber-rest shrink-0" />
-                                                        <span>Módulo 1: A Ciência da Pausa & THI</span>
-                                                    </div>
-                                                    {expandedModule === 'mod1' ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
-                                                </button>
-                                                {expandedModule === 'mod1' && (
-                                                    <div className="p-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 flex flex-col gap-3 leading-relaxed">
-                                                        <p>
-                                                            Nas clínicas médicas e de longevidade, o Treinamento Hipóxico Intermitente (THI) usa equipamentos caros para alternar ar enriquecido e rarefeito em oxigênio. O Modo Descanso traz esse mesmo benefício fisiológico através dos pulmões vazios (Kumbhaka).
-                                                        </p>
-                                                        <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
-                                                                <strong className="text-amber-rest block">Biogênese Mitocondrial</strong>
-                                                                Novas usinas de energia nas células para combater a fadiga crônica.
-                                                            </div>
-                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
-                                                                <strong className="text-amber-rest block">Síntese de EPO</strong>
-                                                                Otimiza o transporte de oxigênio no sangue de forma 100% natural.
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* MÓDULO 2: IMERSÃO SONORA & FREQUÊNCIAS */}
-                                            <div className="bg-night-card border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-                                                <button 
-                                                    onClick={() => setExpandedModule(expandedModule === 'mod2' ? null : 'mod2')}
-                                                    className="w-full p-4 text-left flex justify-between items-center text-sm font-semibold text-ivory hover:text-amber-rest transition-colors"
-                                                >
-                                                    <div className="flex items-center gap-2.5">
-                                                        <Zap size={16} className="text-amber-rest shrink-0" />
-                                                        <span>Módulo 2: Imersão Sonora & Frequências</span>
-                                                    </div>
-                                                    {expandedModule === 'mod2' ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
-                                                </button>
-                                                {expandedModule === 'mod2' && (
-                                                    <div className="p-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 flex flex-col gap-3 leading-relaxed">
-                                                        <p>
-                                                            As faixas de áudio usam <strong>Tons Isocrônicos</strong> com pulsação calibrada em áudio 3D. Em vez de forçar o cérebro a relaxar pelo pensamento, o som atua por ressonância neurossomática:
-                                                        </p>
-                                                        <ul className="list-disc pl-4 space-y-1 text-slate-400">
-                                                            <li><strong className="text-ivory">Ondas Alfa (8 a 12 Hz):</strong> Quebram a ansiedade e mantêm clareza relaxada sem sonolência pesada.</li>
-                                                            <li><strong className="text-ivory">Ondas Theta (4 a 8 Hz):</strong> Acesso ao limiar meditativo onde o corpo libera tensões musculares profundas.</li>
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* MÓDULO 3: REESCREVENDO O SUBCONSCIENTE & JOURNALING INTERATIVO */}
-                                            <div className="bg-night-card border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-                                                <button 
-                                                    onClick={() => setExpandedModule(expandedModule === 'mod3' ? null : 'mod3')}
-                                                    className="w-full p-4 text-left flex justify-between items-center text-sm font-semibold text-ivory hover:text-amber-rest transition-colors"
-                                                >
-                                                    <div className="flex items-center gap-2.5">
-                                                        <FileText size={16} className="text-amber-rest shrink-0" />
-                                                        <span>Módulo 3: Reescrevendo o Subconsciente & Journaling</span>
-                                                    </div>
-                                                    {expandedModule === 'mod3' ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
-                                                </button>
-                                                {expandedModule === 'mod3' && (
-                                                    <div className="p-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 flex flex-col gap-4 leading-relaxed">
-                                                        <p>
-                                                            A respiração abre a porta do subconsciente (ondas Theta); a escrita no papel ancora a nova direção no córtex pré-frontal. Preencha seus registros abaixo (ficam salvos com segurança no seu navegador):
-                                                        </p>
-
-                                                        {/* Exercício 1: Gratidão Diária */}
-                                                        <div className="flex flex-col gap-1.5">
-                                                            <label className="font-semibold text-amber-rest flex items-center gap-1.5">
-                                                                <Heart size={13} /> 1. Gratidão Diária (3 pequenas vitórias de hoje):
-                                                            </label>
-                                                            <textarea 
-                                                                value={journalNotes.gratidao}
-                                                                onChange={(e) => handleJournalChange('gratidao', e.target.value)}
-                                                                placeholder="1. Pelo respiro profundo no almoço... 2. Por concluir uma entrega..."
-                                                                rows="2"
-                                                                className="w-full p-2.5 rounded-xl bg-night border border-slate-800 text-xs text-ivory placeholder-slate-600 focus:outline-none focus:border-amber-rest"
-                                                            />
-                                                        </div>
-
-                                                        {/* Exercício 2: Intenção no Presente */}
-                                                        <div className="flex flex-col gap-1.5">
-                                                            <label className="font-semibold text-amber-rest flex items-center gap-1.5">
-                                                                <Compass size={13} /> 2. Intenção no Presente ("Eu sou...", "Eu tenho..."):
-                                                            </label>
-                                                            <input 
-                                                                type="text"
-                                                                value={journalNotes.intencao}
-                                                                onChange={(e) => handleJournalChange('intencao', e.target.value)}
-                                                                placeholder="Eu habito a calma com serenidade e comando..."
-                                                                className="w-full p-2.5 rounded-xl bg-night border border-slate-800 text-xs text-ivory placeholder-slate-600 focus:outline-none focus:border-amber-rest"
-                                                            />
-                                                        </div>
-
-                                                        {/* Exercício 3: Liberação de Crenças */}
-                                                        <div className="flex flex-col gap-1.5">
-                                                            <label className="font-semibold text-amber-rest flex items-center gap-1.5">
-                                                                <Sparkles size={13} /> 3. Liberação de Sobrecarga (O que solto hoje):
-                                                            </label>
-                                                            <input 
-                                                                type="text"
-                                                                value={journalNotes.crenca}
-                                                                onChange={(e) => handleJournalChange('crenca', e.target.value)}
-                                                                placeholder="Solto a necessidade de controlar tudo imediatamente..."
-                                                                className="w-full p-2.5 rounded-xl bg-night border border-slate-800 text-xs text-ivory placeholder-slate-600 focus:outline-none focus:border-amber-rest"
-                                                            />
-                                                        </div>
-
-                                                        {saveStatus && (
-                                                            <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-                                                                <Check size={12} /> Anotação salva localmente no seu dispositivo.
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* MÓDULO 4: TÉCNICAS RESPIRATÓRIAS OFFLINE */}
-                                            <div className="bg-night-card border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-                                                <button 
-                                                    onClick={() => setExpandedModule(expandedModule === 'mod4' ? null : 'mod4')}
-                                                    className="w-full p-4 text-left flex justify-between items-center text-sm font-semibold text-ivory hover:text-amber-rest transition-colors"
-                                                >
-                                                    <div className="flex items-center gap-2.5">
-                                                        <Moon size={16} className="text-amber-rest shrink-0" />
-                                                        <span>Módulo 4: Técnicas Respiratórias Offline (Sem Fones)</span>
-                                                    </div>
-                                                    {expandedModule === 'mod4' ? <ChevronUp size={16} className="text-amber-rest" /> : <ChevronDown size={16} />}
-                                                </button>
-                                                {expandedModule === 'mod4' && (
-                                                    <div className="p-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 flex flex-col gap-3 leading-relaxed">
-                                                        <p>
-                                                            Quando você estiver no aeroporto, em trânsito ou sem bateria no celular, utilize este protocolo de ancoragem em 3 passos simples:
-                                                        </p>
-                                                        <div className="space-y-2 text-slate-300">
-                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
-                                                                <strong className="text-amber-rest">1. Expiração Dobrada (4:8)</strong>
-                                                                <p className="text-slate-400 mt-0.5">Inale pelo nariz contando até 4; exale suavemente contando até 8. Reduz os batimentos cardíacos instantaneamente.</p>
-                                                            </div>
-                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
-                                                                <strong className="text-amber-rest">2. Humming Discreto</strong>
-                                                                <p className="text-slate-400 mt-0.5">Exale emitindo um zumbido sutil com os lábios selados para acionar o nervo vago sem chamar atenção.</p>
-                                                            </div>
-                                                            <div className="p-2.5 rounded-lg bg-night border border-slate-800">
-                                                                <strong className="text-amber-rest">3. Ancoragem Física</strong>
-                                                                <p className="text-slate-400 mt-0.5">Apoie a sola dos pés no chão, solte a tensão das mandíbulas e faça três respirações completas.</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                        </div>
-
+                                        {/* Botão no rodapé: enxuto "Sessões de Áudio" */}
                                         <div className="pt-2">
                                             <button 
                                                 onClick={() => setIsFlipped(false)}
-                                                className="w-full py-3 rounded-xl bg-night-card border border-amber-rest/40 text-amber-rest font-semibold hover:border-amber-rest transition-all flex items-center justify-center gap-2"
+                                                className="w-full py-3 rounded-xl bg-night-card border border-amber-rest/40 text-amber-rest font-semibold hover:border-amber-rest transition-all flex items-center justify-center gap-2 shadow-sm text-xs"
                                             >
-                                                <RotateCw size={15} />
-                                                <span>Girar de volta para as Sessões de Áudio</span>
+                                                <RotateCw size={14} />
+                                                <span>Sessões de Áudio</span>
                                             </button>
                                         </div>
                                     </div>
@@ -862,7 +978,7 @@
                                     <span className="text-xs text-slate-400 mt-2">de {selectedSession.durationText}</span>
                                 </div>
 
-                                {/* Linha de Progresso Scrubber do Áudio */}
+                                {/* Scrubber do Áudio */}
                                 <div className="w-full max-w-md flex flex-col gap-1.5 px-2">
                                     <input 
                                         type="range"
@@ -878,7 +994,7 @@
                                     </div>
                                 </div>
 
-                                {/* Controles do Player com Áudio Real */}
+                                {/* Controles do Player */}
                                 <div className="flex items-center gap-4">
                                     <button 
                                         onClick={restartSession}
@@ -912,7 +1028,7 @@
                                     <span>Coloque seus fones para a condução tridimensional.</span>
                                 </div>
 
-                                {/* Pós-prática quando concluída */}
+                                {/* Pós-prática concluída */}
                                 {currentTime >= (duration || selectedSession.duration) - 2 && currentTime > 5 && (
                                     <div className="w-full max-w-md bg-night-card border border-emerald-900/50 p-6 rounded-2xl flex flex-col gap-3 animate-fade-in shadow-xl text-center">
                                         <div className="flex items-center justify-center gap-2 text-emerald-400 text-sm font-semibold">
@@ -949,6 +1065,169 @@
                         </div>
                         <p>© 2026 Modo Descanso · Em caso de crise ou sofrimento emocional agudo, ligue para o CVV 188.</p>
                     </footer>
+
+                    {/* ============================================================ */}
+                    {/* MODAL 1: POP-UP DE CONTRAINDICAÇÕES COM CONSENTIMENTO */}
+                    {/* ============================================================ */}
+                    {showConsentModal && view === 'dashboard' && (
+                        <div className="fixed inset-0 z-50 bg-[#0B101D]/90 backdrop-blur-md p-4 flex items-center justify-center animate-fade-in">
+                            <div className="w-full max-w-lg bg-night-card border border-amber-rest/50 rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2.5 rounded-xl bg-amber-950/60 text-amber-rest border border-amber-rest/40 shrink-0">
+                                        <AlertTriangle size={22} />
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-amber-rest uppercase tracking-wider font-semibold block">Aviso Importante</span>
+                                        <h3 className="font-sora font-semibold text-lg text-ivory">Contraindicações & Saúde</h3>
+                                    </div>
+                                </div>
+
+                                <div className="text-xs text-slate-300 leading-relaxed space-y-2.5 border-y border-slate-800/80 py-3">
+                                    <p>
+                                        O <strong>Modo Descanso</strong> atua diretamente na hemodinâmica e no sistema autônomo. Para a sua total segurança, leia com atenção:
+                                    </p>
+                                    <div className="p-3 rounded-xl bg-night border border-rose-950/60 text-rose-300/90 space-y-1">
+                                        <strong className="block text-rose-300 text-xs">Evitar apneias ou retenções prolongadas:</strong>
+                                        <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
+                                            <li>Gestantes (qualquer fase da gestação).</li>
+                                            <li>Pressão alta não controlada (especialmente pós-infarto).</li>
+                                            <li>Histórico de epilepsia ou crises convulsivas.</li>
+                                            <li>Uso de marca-passo ou arritmias cardíacas severas.</li>
+                                        </ul>
+                                    </div>
+                                    <p className="text-slate-400 text-[11px]">
+                                        Nesses casos, realize as sessões mantendo a <strong>respiração natural contínua</strong>, sem prender o ar. O relaxamento através dos tons isocrônicos e da condução continua 100% seguro.
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="flex items-center gap-2.5 cursor-pointer text-xs text-slate-300 select-none">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={dontShowAgain}
+                                            onChange={(e) => setDontShowAgain(e.target.checked)}
+                                            className="w-4 h-4 rounded border-slate-700 bg-night text-amber-rest focus:ring-0 cursor-pointer"
+                                        />
+                                        <span>Não mostrar este aviso novamente neste dispositivo</span>
+                                    </label>
+                                    <p className="text-[11px] text-slate-500 pl-6">
+                                        {dontShowAgain 
+                                            ? "O consentimento será registrado com data e hora local no seu navegador."
+                                            : "Se desmarcado, o aviso de segurança será reexibido nos próximos acessos."}
+                                    </p>
+                                </div>
+
+                                <button 
+                                    onClick={handleCloseConsent}
+                                    className="w-full py-3 rounded-xl bg-amber-rest text-night font-semibold hover:opacity-95 transition-all text-sm flex items-center justify-center gap-2 shadow-md active:scale-95"
+                                >
+                                    <span>Li e estou ciente</span>
+                                    <ArrowRight size={15} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ============================================================ */}
+                    {/* MODAL 2: CARROSSEL DE LEITURA EM TELA CHEIA (LETRAS GRANDES) */}
+                    {/* ============================================================ */}
+                    {activeCarouselData && (
+                        <div className="fixed inset-0 z-50 bg-[#0B101D] p-5 md:p-8 flex flex-col justify-between animate-fade-in overflow-hidden">
+                            <div className="w-full max-w-2xl mx-auto flex flex-col h-full justify-between">
+                                
+                                {/* Topo com botão Voltar ao Menu */}
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-rest/10 text-amber-rest border border-amber-rest/30 font-semibold">
+                                            {activeCarouselData.badge}
+                                        </span>
+                                        <span className="text-xs text-slate-400 font-medium">{activeCarouselData.title}</span>
+                                    </div>
+                                    <button 
+                                        onClick={closeCarousel}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-night-card border border-slate-800 text-slate-300 hover:text-amber-rest hover:border-amber-rest transition-all text-xs font-semibold"
+                                    >
+                                        <span>Voltar ao Menu</span>
+                                        <X size={15} />
+                                    </button>
+                                </div>
+
+                                {/* Slide Atual com Tipografia Ampla */}
+                                <div className="flex-1 flex flex-col justify-center py-6 overflow-y-auto">
+                                    {(() => {
+                                        const slide = activeCarouselData.slides[currentSlideIndex];
+                                        return (
+                                            <div key={currentSlideIndex} className="slide-enter flex flex-col gap-3.5 max-w-xl mx-auto w-full">
+                                                <span className="text-xs text-amber-rest uppercase tracking-wider font-semibold">
+                                                    {slide.tag}
+                                                </span>
+                                                <h3 className="font-sora text-2xl md:text-3xl font-bold text-ivory leading-tight">
+                                                    {slide.title}
+                                                </h3>
+
+                                                <div className="p-4 rounded-xl bg-night-card border-l-4 border-amber-rest text-sm md:text-base text-slate-200 font-medium leading-relaxed my-1">
+                                                    {slide.highlight}
+                                                </div>
+
+                                                <div className="space-y-3 text-sm md:text-base text-slate-300 leading-relaxed pt-1">
+                                                    {slide.paragraphs.map((p, idx) => (
+                                                        <p key={idx}>{p}</p>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+
+                                {/* Rodapé com Navegação */}
+                                <div className="border-t border-slate-800 pt-4 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between">
+                                        <button 
+                                            onClick={() => setCurrentSlideIndex(Math.max(0, currentSlideIndex - 1))}
+                                            disabled={currentSlideIndex === 0}
+                                            className="px-4 py-2 rounded-xl bg-night-card border border-slate-800 text-xs text-slate-300 disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1 hover:border-amber-rest transition-all"
+                                        >
+                                            <ChevronLeft size={16} /> Anterior
+                                        </button>
+
+                                        <div className="flex flex-col items-center gap-1.5">
+                                            <div className="flex gap-1.5">
+                                                {activeCarouselData.slides.map((_, i) => (
+                                                    <span 
+                                                        key={i} 
+                                                        onClick={() => setCurrentSlideIndex(i)}
+                                                        className={`h-2 rounded-full cursor-pointer transition-all ${i === currentSlideIndex ? 'w-6 bg-amber-rest' : 'w-2 bg-slate-700'}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-[11px] text-slate-500 font-mono">
+                                                Página {currentSlideIndex + 1} de {activeCarouselData.slides.length}
+                                            </span>
+                                        </div>
+
+                                        <button 
+                                            onClick={() => {
+                                                if (currentSlideIndex < activeCarouselData.slides.length - 1) {
+                                                    setCurrentSlideIndex(currentSlideIndex + 1);
+                                                } else {
+                                                    closeCarousel();
+                                                }
+                                            }}
+                                            className="px-4 py-2 rounded-xl bg-amber-rest text-night text-xs font-semibold flex items-center gap-1 hover:opacity-90 transition-all shadow-md"
+                                        >
+                                            {currentSlideIndex === activeCarouselData.slides.length - 1 ? (
+                                                <>Concluir <Check size={14} /></>
+                                            ) : (
+                                                <>Próximo <ChevronRight size={16} /></>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             );
         }
