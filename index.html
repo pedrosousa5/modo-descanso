@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MODO DESCANSO · Aplicativo Oficial</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="img/logo.jpeg">
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- React e ReactDOM -->
@@ -20,6 +22,7 @@
             background-color: #0B101D;
             color: #F4F1EA;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
         h1, h2, h3, h4, .font-sora {
             font-family: 'Sora', sans-serif;
@@ -86,11 +89,11 @@
 
         /* Transição suave de slides do carrossel */
         .slide-enter {
-            animation: fadeInSlide 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: fadeInSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         @keyframes fadeInSlide {
-            from { opacity: 0; transform: translateY(10px) scale(0.99); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; transform: translateX(16px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         /* Custom range slider para áudio */
@@ -166,6 +169,7 @@
                 subtitle: 'A mecânica biológica e a regra de ouro para praticar com tranquilidade',
                 icon: Shield,
                 badge: 'Fundamentos',
+                image: 'img/seguranca.webp',
                 slides: [
                     {
                         tag: 'A Regra Fundamental',
@@ -213,6 +217,7 @@
                 subtitle: 'Como a hipóxia intermitente benéfica restaura a energia celular',
                 icon: Activity,
                 badge: 'Módulo 1',
+                image: 'img/ciencia.webp',
                 slides: [
                     {
                         tag: 'Mecanismo Biológico',
@@ -250,6 +255,7 @@
                 subtitle: 'Arrastamento de ondas cerebrais por tons isocrônicos em áudio 3D',
                 icon: Zap,
                 badge: 'Módulo 2',
+                image: 'img/som.webp',
                 slides: [
                     {
                         tag: 'Física do Som',
@@ -286,6 +292,7 @@
                 subtitle: 'O elo essencial: abrindo o portal Alfa/Theta para reprogramar crenças e capturar downloads no papel',
                 icon: FileText,
                 badge: 'Módulo 3',
+                image: 'img/portal.webp',
                 slides: [
                     {
                         tag: 'O Elo com o Módulo 2',
@@ -324,6 +331,7 @@
                 subtitle: 'Autorregulação autonômica sem celular, sem fones e em qualquer lugar',
                 icon: Moon,
                 badge: 'Módulo 4',
+                image: 'img/offline.webp',
                 slides: [
                     {
                         tag: 'Técnica 1 · Parassimpático',
@@ -414,20 +422,31 @@
             const [loginError, setLoginError] = useState('');
             const [isLoading, setIsLoading] = useState(false);
 
-            // Pop-up de Contraindicações
+            // Pop-up de Contraindicações (SÓ abre APÓS login quando no dashboard)
             const [dontShowAgain, setDontShowAgain] = useState(false);
             const [consentRecord, setConsentRecord] = useState(() => {
                 const saved = localStorage.getItem('modo_descanso_consent');
                 return saved ? JSON.parse(saved) : null;
             });
-            const [showConsentModal, setShowConsentModal] = useState(() => {
-                const saved = localStorage.getItem('modo_descanso_consent');
-                return !saved;
-            });
+            const [showConsentModal, setShowConsentModal] = useState(false);
+
+            // Abre o modal de consentimento apenas quando o usuário está logado e não consentiu
+            useEffect(() => {
+                if (currentUser && view === 'dashboard') {
+                    const savedConsent = localStorage.getItem('modo_descanso_consent');
+                    if (!savedConsent) {
+                        setShowConsentModal(true);
+                    }
+                }
+            }, [currentUser, view]);
 
             // Carrossel de Módulos em Tela Cheia
             const [activeCarouselKey, setActiveCarouselKey] = useState(null);
             const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+            // Controle de gesto Swipe (arrastar com o dedo)
+            const [touchStartX, setTouchStartX] = useState(null);
+            const [touchEndX, setTouchEndX] = useState(null);
 
             // Player de Áudio
             const [selectedSession, setSelectedSession] = useState(null);
@@ -539,6 +558,7 @@
                 localStorage.removeItem('modo_descanso_user');
                 setView('login');
                 setIsPlaying(false);
+                setShowConsentModal(false);
                 if (audioRef.current) {
                     audioRef.current.pause();
                 }
@@ -564,6 +584,34 @@
             const closeCarousel = () => {
                 setActiveCarouselKey(null);
                 setCurrentSlideIndex(0);
+            };
+
+            // Handlers de toque para swipe
+            const handleTouchStart = (e) => {
+                setTouchEndX(null);
+                setTouchStartX(e.targetTouches[0].clientX);
+            };
+
+            const handleTouchMove = (e) => {
+                setTouchEndX(e.targetTouches[0].clientX);
+            };
+
+            const handleTouchEnd = () => {
+                if (!touchStartX || !touchEndX) return;
+                const distance = touchStartX - touchEndX;
+                const minSwipeDistance = 45;
+
+                if (distance > minSwipeDistance) {
+                    // Swipe para a esquerda -> Próximo slide
+                    if (activeCarouselData && currentSlideIndex < activeCarouselData.slides.length - 1) {
+                        setCurrentSlideIndex(prev => prev + 1);
+                    }
+                } else if (distance < -minSwipeDistance) {
+                    // Swipe para a direita -> Slide anterior
+                    if (currentSlideIndex > 0) {
+                        setCurrentSlideIndex(prev => prev - 1);
+                    }
+                }
             };
 
             const startSession = (session) => {
@@ -619,9 +667,14 @@
                     <audio ref={audioRef} preload="auto" />
 
                     <div>
-                        {/* Header Unificado do Aplicativo */}
+                        {/* Header Oficial do Aplicativo com Logo */}
                         <header className="flex justify-between items-center border-b border-slate-800/80 pb-4 mb-6">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2.5">
+                                <img 
+                                    src="img/logo.jpeg" 
+                                    alt="Modo Descanso" 
+                                    className="w-8 h-8 rounded-full object-cover border border-amber-rest/40 shadow-sm"
+                                />
                                 <span className="font-sora font-semibold text-lg tracking-tight text-ivory">
                                     MODO<span className="text-amber-rest mx-1">·</span>DESCANSO
                                 </span>
@@ -653,16 +706,23 @@
 
                         {/* TELA 1: LOGIN / ACESSO */}
                         {view === 'login' && (
-                            <div className="flex flex-col items-center justify-center py-6 md:py-12 animate-fade-in">
-                                <div className="w-full max-w-md bg-night-card border border-slate-800/80 rounded-2xl p-6 md:p-8 flex flex-col gap-6 shadow-xl">
-                                    <div className="flex flex-col gap-2 text-center">
-                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-amber-rest text-xs mx-auto">
+                            <div className="flex flex-col items-center justify-center py-6 md:py-10 animate-fade-in">
+                                <div className="w-full max-w-md bg-night-card border border-slate-800/80 rounded-2xl p-6 md:p-8 flex flex-col gap-6 shadow-xl relative overflow-hidden">
+                                    
+                                    {/* Logo destacada na tela de login */}
+                                    <div className="flex flex-col items-center gap-3 text-center">
+                                        <img 
+                                            src="img/logo.jpeg" 
+                                            alt="Modo Descanso" 
+                                            className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-rest/40 shadow-xl"
+                                        />
+                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-amber-rest text-xs">
                                             <Sparkles size={13} /> Área do Praticante
                                         </div>
-                                        <h1 className="font-sora text-2xl font-bold text-ivory mt-2">
+                                        <h1 className="font-sora text-2xl font-bold text-ivory">
                                             Acesse seu aplicativo
                                         </h1>
-                                        <p className="text-slate-400 text-sm">
+                                        <p className="text-slate-400 text-xs md:text-sm">
                                             Entre com o e-mail cadastrado na sua compra para liberar suas conduções guiadas.
                                         </p>
                                     </div>
@@ -721,7 +781,7 @@
                         )}
 
                         {/* TELA 2: DASHBOARD COM 3D FLIP CARD */}
-                        {view === 'dashboard' && (
+                        {view === 'dashboard' && currentUser && (
                             <div className="flip-scene">
                                 <div className={`flip-card ${isFlipped ? 'is-flipped' : ''}`}>
                                     
@@ -789,7 +849,7 @@
                                         </div>
                                     </div>
 
-                                    {/* LADO B (VERSO): MENU DE APOIO COM CARROSSEL EM TELA CHEIA */}
+                                    {/* LADO B (VERSO): MENU DE APOIO COM IMAGENS E CARROSSEL EM TELA CHEIA */}
                                     <div className="flip-face flip-back flex flex-col gap-5">
                                         <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                                             <div>
@@ -800,16 +860,18 @@
                                             </div>
                                         </div>
 
-                                        {/* 1. MANUAL DE PRÁTICA SEGURA (REGRA DE OURO NO TOPO, SEM SELO DE INCLUSO) */}
+                                        {/* 1. MANUAL DE PRÁTICA SEGURA COM IMAGEM DECORATIVA SUTIL */}
                                         <div 
                                             onClick={() => openModuleCarousel('seguranca')}
-                                            className="bg-gradient-to-br from-amber-950/20 via-night-card to-night-card border border-amber-rest/40 hover:border-amber-rest p-5 rounded-2xl flex flex-col gap-3 shadow-lg cursor-pointer group transition-all"
+                                            className="bg-gradient-to-br from-amber-950/20 via-night-card to-night-card border border-amber-rest/40 hover:border-amber-rest p-5 rounded-2xl flex flex-col gap-3 shadow-lg cursor-pointer group transition-all relative overflow-hidden"
                                         >
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="p-2 rounded-xl bg-amber-rest/20 text-amber-rest">
-                                                        <Shield size={18} />
-                                                    </div>
+                                                <div className="flex items-center gap-3">
+                                                    <img 
+                                                        src="img/seguranca.webp" 
+                                                        alt="Fundamentos & Segurança" 
+                                                        className="w-11 h-11 rounded-xl object-cover border border-amber-rest/30 shrink-0"
+                                                    />
                                                     <div>
                                                         <span className="text-[10px] text-amber-rest uppercase tracking-wider font-semibold block">Manual Oficial</span>
                                                         <h3 className="font-sora font-semibold text-lg text-ivory group-hover:text-amber-rest transition-colors">
@@ -834,25 +896,27 @@
                                             </div>
                                         </div>
 
-                                        {/* 2. OS 4 MÓDULOS DE APOIO EM CARDS DESTACADOS */}
+                                        {/* 2. OS 4 MÓDULOS DE APOIO ILUSTRADOS */}
                                         <div className="flex flex-col gap-2.5">
                                             <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Guias & Materiais de Apoio</span>
                                             
                                             {/* CARD MÓDULO 1 */}
                                             <div 
                                                 onClick={() => openModuleCarousel('mod1')}
-                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
+                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-3.5 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2.5 rounded-xl bg-night border border-slate-800 text-amber-rest">
-                                                        <Activity size={18} />
-                                                    </div>
+                                                    <img 
+                                                        src="img/ciencia.webp" 
+                                                        alt="A Ciência da Pausa" 
+                                                        className="w-12 h-12 rounded-xl object-cover border border-slate-800 shrink-0 group-hover:border-amber-rest/40 transition-colors"
+                                                    />
                                                     <div>
                                                         <span className="text-[10px] text-amber-rest uppercase font-semibold block">Módulo 1</span>
                                                         <h4 className="font-sora text-sm font-semibold text-ivory group-hover:text-amber-rest transition-colors">
                                                             A Ciência da Pausa & THI
                                                         </h4>
-                                                        <p className="text-xs text-slate-400">Hipóxia intermitente benéfica e biogênese mitocondrial</p>
+                                                        <p className="text-xs text-slate-400">Hipóxia intermitente e biogênese mitocondrial</p>
                                                     </div>
                                                 </div>
                                                 <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-rest transition-colors" />
@@ -861,32 +925,36 @@
                                             {/* CARD MÓDULO 2 */}
                                             <div 
                                                 onClick={() => openModuleCarousel('mod2')}
-                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
+                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-3.5 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2.5 rounded-xl bg-night border border-slate-800 text-amber-rest">
-                                                        <Zap size={18} />
-                                                    </div>
+                                                    <img 
+                                                        src="img/som.webp" 
+                                                        alt="Imersão Sonora" 
+                                                        className="w-12 h-12 rounded-xl object-cover border border-slate-800 shrink-0 group-hover:border-amber-rest/40 transition-colors"
+                                                    />
                                                     <div>
                                                         <span className="text-[10px] text-amber-rest uppercase font-semibold block">Módulo 2</span>
                                                         <h4 className="font-sora text-sm font-semibold text-ivory group-hover:text-amber-rest transition-colors">
                                                             Imersão Sonora & Frequências
                                                         </h4>
-                                                        <p className="text-xs text-slate-400">Tons isocrônicos e ondas cerebrais Alfa e Theta</p>
+                                                        <p className="text-xs text-slate-400">Tons isocrônicos e ondas Alfa e Theta</p>
                                                     </div>
                                                 </div>
                                                 <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-rest transition-colors" />
                                             </div>
 
-                                            {/* CARD MÓDULO 3 (RECONCEITUADO: O PORTAL, CRENÇAS E JOURNALING NO PAPEL) */}
+                                            {/* CARD MÓDULO 3 */}
                                             <div 
                                                 onClick={() => openModuleCarousel('mod3')}
-                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
+                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-3.5 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2.5 rounded-xl bg-night border border-slate-800 text-amber-rest">
-                                                        <FileText size={18} />
-                                                    </div>
+                                                    <img 
+                                                        src="img/portal.webp" 
+                                                        alt="Reescrevendo o Subconsciente" 
+                                                        className="w-12 h-12 rounded-xl object-cover border border-slate-800 shrink-0 group-hover:border-amber-rest/40 transition-colors"
+                                                    />
                                                     <div>
                                                         <span className="text-[10px] text-amber-rest uppercase font-semibold block">Módulo 3</span>
                                                         <h4 className="font-sora text-sm font-semibold text-ivory group-hover:text-amber-rest transition-colors">
@@ -898,15 +966,17 @@
                                                 <ChevronRight size={16} className="text-slate-500 group-hover:text-amber-rest transition-colors" />
                                             </div>
 
-                                            {/* CARD MÓDULO 4 (AS 3 TÉCNICAS OFFLINE) */}
+                                            {/* CARD MÓDULO 4 */}
                                             <div 
                                                 onClick={() => openModuleCarousel('mod4')}
-                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-4 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
+                                                className="bg-night-card border border-slate-800 hover:border-amber-rest/60 p-3.5 rounded-xl flex items-center justify-between cursor-pointer transition-all group"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2.5 rounded-xl bg-night border border-slate-800 text-amber-rest">
-                                                        <Moon size={18} />
-                                                    </div>
+                                                    <img 
+                                                        src="img/offline.webp" 
+                                                        alt="Técnicas Respiratórias Offline" 
+                                                        className="w-12 h-12 rounded-xl object-cover border border-slate-800 shrink-0 group-hover:border-amber-rest/40 transition-colors"
+                                                    />
                                                     <div>
                                                         <span className="text-[10px] text-amber-rest uppercase font-semibold block">Módulo 4</span>
                                                         <h4 className="font-sora text-sm font-semibold text-ivory group-hover:text-amber-rest transition-colors">
@@ -1067,9 +1137,9 @@
                     </footer>
 
                     {/* ============================================================ */}
-                    {/* MODAL 1: POP-UP DE CONTRAINDICAÇÕES COM CONSENTIMENTO */}
+                    {/* MODAL 1: POP-UP DE CONTRAINDICAÇÕES (APENAS APÓS O LOGIN) */}
                     {/* ============================================================ */}
-                    {showConsentModal && view === 'dashboard' && (
+                    {showConsentModal && currentUser && view === 'dashboard' && (
                         <div className="fixed inset-0 z-50 bg-[#0B101D]/90 backdrop-blur-md p-4 flex items-center justify-center animate-fade-in">
                             <div className="w-full max-w-lg bg-night-card border border-amber-rest/50 rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
                                 <div className="flex items-start gap-3">
@@ -1129,19 +1199,33 @@
                     )}
 
                     {/* ============================================================ */}
-                    {/* MODAL 2: CARROSSEL DE LEITURA EM TELA CHEIA (LETRAS GRANDES) */}
+                    {/* MODAL 2: CARROSSEL DE LEITURA EM TELA CHEIA COM SWIPE NO CELULAR */}
                     {/* ============================================================ */}
                     {activeCarouselData && (
-                        <div className="fixed inset-0 z-50 bg-[#0B101D] p-5 md:p-8 flex flex-col justify-between animate-fade-in overflow-hidden">
+                        <div 
+                            className="fixed inset-0 z-50 bg-[#0B101D] p-5 md:p-8 flex flex-col justify-between animate-fade-in overflow-hidden select-none"
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                        >
                             <div className="w-full max-w-2xl mx-auto flex flex-col h-full justify-between">
                                 
                                 {/* Topo com botão Voltar ao Menu */}
                                 <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-rest/10 text-amber-rest border border-amber-rest/30 font-semibold">
-                                            {activeCarouselData.badge}
-                                        </span>
-                                        <span className="text-xs text-slate-400 font-medium">{activeCarouselData.title}</span>
+                                    <div className="flex items-center gap-2.5">
+                                        {activeCarouselData.image && (
+                                            <img 
+                                                src={activeCarouselData.image} 
+                                                alt={activeCarouselData.title} 
+                                                className="w-8 h-8 rounded-lg object-cover border border-amber-rest/30"
+                                            />
+                                        )}
+                                        <div>
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-rest/10 text-amber-rest border border-amber-rest/30 font-semibold">
+                                                {activeCarouselData.badge}
+                                            </span>
+                                            <span className="text-xs text-slate-300 font-medium ml-2 hidden sm:inline">{activeCarouselData.title}</span>
+                                        </div>
                                     </div>
                                     <button 
                                         onClick={closeCarousel}
@@ -1152,15 +1236,21 @@
                                     </button>
                                 </div>
 
-                                {/* Slide Atual com Tipografia Ampla */}
+                                {/* Slide Atual com Tipografia Ampla e Suporte a Swipe */}
                                 <div className="flex-1 flex flex-col justify-center py-6 overflow-y-auto">
                                     {(() => {
                                         const slide = activeCarouselData.slides[currentSlideIndex];
                                         return (
                                             <div key={currentSlideIndex} className="slide-enter flex flex-col gap-3.5 max-w-xl mx-auto w-full">
-                                                <span className="text-xs text-amber-rest uppercase tracking-wider font-semibold">
-                                                    {slide.tag}
-                                                </span>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs text-amber-rest uppercase tracking-wider font-semibold">
+                                                        {slide.tag}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-500 font-mono">
+                                                        ← Deslize para navegar →
+                                                    </span>
+                                                </div>
+
                                                 <h3 className="font-sora text-2xl md:text-3xl font-bold text-ivory leading-tight">
                                                     {slide.title}
                                                 </h3>
@@ -1179,7 +1269,7 @@
                                     })()}
                                 </div>
 
-                                {/* Rodapé com Navegação */}
+                                {/* Rodapé com Navegação Manual e Indicador de Páginas */}
                                 <div className="border-t border-slate-800 pt-4 flex flex-col gap-2">
                                     <div className="flex items-center justify-between">
                                         <button 
