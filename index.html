@@ -428,7 +428,7 @@
             const [loginError, setLoginError] = useState('');
             const [isLoading, setIsLoading] = useState(false);
 
-            // Pop-up de Contraindicações (SÓ abre APÓS login quando no dashboard)
+            // Pop-up de Contraindicações (SÓ abre APÓS login quando no dashboard, respeitando a janela de 14 dias)
             const [dontShowAgain, setDontShowAgain] = useState(false);
             const [consentRecord, setConsentRecord] = useState(() => {
                 const saved = localStorage.getItem('modo_descanso_consent');
@@ -436,12 +436,24 @@
             });
             const [showConsentModal, setShowConsentModal] = useState(false);
 
-            // Abre o modal de consentimento apenas quando o usuário está logado e não consentiu
+            // Abre o modal de consentimento apenas quando o usuário está logado e não consentiu nos últimos 14 dias
             useEffect(() => {
                 if (currentUser && view === 'dashboard') {
                     const savedConsent = localStorage.getItem('modo_descanso_consent');
                     if (!savedConsent) {
                         setShowConsentModal(true);
+                    } else {
+                        try {
+                            const parsed = JSON.parse(savedConsent);
+                            const consentDate = parsed.date ? new Date(parsed.date).getTime() : 0;
+                            const now = Date.now();
+                            const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+                            if (now - consentDate > fourteenDaysMs) {
+                                setShowConsentModal(true);
+                            }
+                        } catch (e) {
+                            setShowConsentModal(true);
+                        }
                     }
                 }
             }, [currentUser, view]);
@@ -631,9 +643,11 @@
 
             const handleCloseConsent = () => {
                 if (dontShowAgain) {
+                    const now = new Date();
                     const record = {
                         consented: true,
-                        timestamp: new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })
+                        date: now.toISOString(),
+                        timestamp: now.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })
                     };
                     setConsentRecord(record);
                     localStorage.setItem('modo_descanso_consent', JSON.stringify(record));
@@ -1209,6 +1223,15 @@
                                     <p>
                                         O <strong>Modo Descanso</strong> atua diretamente na hemodinâmica e no sistema autônomo. Para a sua total segurança, leia com atenção:
                                     </p>
+                                    
+                                    {/* Alerta de Segurança e Atenção ao Ambiente */}
+                                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-rest/90 space-y-1">
+                                        <strong className="block text-amber-rest text-xs font-semibold">⚠️ Regra Fundamental de Atenção:</strong>
+                                        <p className="text-[11px] leading-relaxed">
+                                            <strong>NUNCA</strong> ouça as sessões guiadas enquanto estiver <strong>dirigindo, próximo à água</strong> (banheiras, piscinas ou mar) ou <strong>operando qualquer tipo de maquinário</strong>. As frequências e a respiração induzem relaxamento profundo e desativação do estado de vigília.
+                                        </p>
+                                    </div>
+
                                     <div className="p-3 rounded-xl bg-night border border-rose-950/60 text-rose-300/90 space-y-1">
                                         <strong className="block text-rose-300 text-xs">Evitar apneias ou retenções prolongadas:</strong>
                                         <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
@@ -1231,12 +1254,12 @@
                                             onChange={(e) => setDontShowAgain(e.target.checked)}
                                             className="w-4 h-4 rounded border-slate-700 bg-night text-amber-rest focus:ring-0 cursor-pointer"
                                         />
-                                        <span>Não mostrar este aviso novamente neste dispositivo</span>
+                                        <span>Lembrar-me deste aviso apenas a cada 14 dias</span>
                                     </label>
                                     <p className="text-[11px] text-slate-500 pl-6">
                                         {dontShowAgain 
-                                            ? "O consentimento será registrado com data e hora local no seu navegador."
-                                            : "Se desmarcado, o aviso de segurança será reexibido nos próximos acessos."}
+                                            ? "Seu consentimento será salvo e você só verá este lembrete novamente daqui a 14 dias."
+                                            : "Se desmarcado, o aviso de segurança será reexibido sempre no início de cada sessão."}
                                     </p>
                                 </div>
 
@@ -1401,7 +1424,7 @@
                                     <div className="flex flex-col gap-3">
                                         {/* Opção 1: WhatsApp */}
                                         <a 
-                                            href={`https://wa.me/5511950965984?text=${encodeURIComponent(`Olá! Sou aluno(a) do Modo Descanso (${currentUser?.email || ''}) e gostaria de tirar uma dúvida.`)}`}
+                                            href={`https://wa.me/5535936180513?text=${encodeURIComponent(`Olá! Sou aluno(a) do Modo Descanso (${currentUser?.email || ''}) e gostaria de tirar uma dúvida.`)}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-amber-rest/40 hover:bg-slate-900 transition-all group"
@@ -1525,7 +1548,7 @@
 
                                         <div className="flex flex-col gap-2 pt-2">
                                             <a 
-                                                href={`https://wa.me/5511950965984?text=${encodeURIComponent(`Olá, gostaria de tirar uma dúvida sobre o Modo Descanso (${currentUser?.email || ''}) antes de decidir cancelar.`)}`}
+                                                href={`https://wa.me/5535936180513?text=${encodeURIComponent(`Olá, gostaria de tirar uma dúvida sobre o Modo Descanso (${currentUser?.email || ''}) antes de decidir cancelar.`)}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium flex items-center justify-center gap-2 transition-all shadow-md text-center"
