@@ -371,7 +371,7 @@
             { 
                 id: 'humming-3', 
                 name: 'ONDA Humming', 
-                duration: 185, 
+                duration: 187, 
                 durationText: '3 min', 
                 tag: 'Transição Imediata',
                 context: 'Vibração vocal simples para interromper o loop de pensamentos acelerados e estimular o nervo vago.',
@@ -380,7 +380,7 @@
             { 
                 id: 'onda-5', 
                 name: 'ONDA 5', 
-                duration: 300, 
+                duration: 298, 
                 durationText: '5 min', 
                 tag: 'Pausa Rápida',
                 context: 'Uma rampa de descida curta no meio do dia, perfeita após uma reunião tensa ou momento de agitação para recuperar o eixo.',
@@ -389,7 +389,7 @@
             { 
                 id: 'onda-11', 
                 name: 'ONDA 11', 
-                duration: 660, 
+                duration: 671, 
                 durationText: '11 min', 
                 tag: 'Clareza & Deep Work',
                 context: 'Condução desenhada para ancorar a mente, dissolver dispersões e restaurar o foco sereno antes de produzir, estudar ou criar.',
@@ -398,7 +398,7 @@
             { 
                 id: 'onda-22', 
                 name: 'ONDA 22', 
-                duration: 1281, 
+                duration: 1284, 
                 durationText: '22 min', 
                 tag: 'Restauração Profunda',
                 context: 'Condução profunda para desativar o sistema de alerta, desarmar a musculatura e restaurar a energia vital em qualquer momento do dia.',
@@ -505,38 +505,27 @@
                         body: JSON.stringify({ email })
                     });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.authorized) {
-                            const user = {
-                                email: data.user?.email || email,
-                                name: data.user?.name || defaultName || email.split('@')[0],
-                                provider: provider
-                            };
-                            setCurrentUser(user);
-                            localStorage.setItem('modo_descanso_user', JSON.stringify(user));
-                            setView('dashboard');
-                            setIsLoading(false);
-                            return;
-                        } else {
-                            setLoginError(data.message || 'Nenhuma compra ativa encontrada para este e-mail.');
-                            setIsLoading(false);
-                            return;
-                        }
+                    const data = await response.json();
+                    if (response.ok && data.authorized) {
+                        const user = {
+                            email: data.user?.email || email,
+                            name: data.user?.name || defaultName || email.split('@')[0],
+                            provider: provider
+                        };
+                        setCurrentUser(user);
+                        localStorage.setItem('modo_descanso_user', JSON.stringify(user));
+                        setView('dashboard');
+                        setIsLoading(false);
+                        return;
+                    } else {
+                        setLoginError(data.message || 'Nenhum acesso ativo encontrado para este e-mail. Se já adquiriu o app, contate o suporte via WhatsApp.');
+                        setIsLoading(false);
+                        return;
                     }
                 } catch (e) {
-                    // Fallback
+                    setLoginError('Não foi possível conectar ao servidor para validar seu acesso. Verifique sua conexão e tente novamente.');
+                    setIsLoading(false);
                 }
-
-                const fallbackUser = {
-                    email: email,
-                    name: defaultName || email.split('@')[0],
-                    provider: provider
-                };
-                setCurrentUser(fallbackUser);
-                localStorage.setItem('modo_descanso_user', JSON.stringify(fallbackUser));
-                setView('dashboard');
-                setIsLoading(false);
             };
 
             const handleGoogleLogin = () => {

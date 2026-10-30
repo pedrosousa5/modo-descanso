@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo · MODO DESCANSO</title>
+    <link rel="icon" type="image/jpeg" href="img/logo.jpeg">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #070B14;
+            color: #F4F1EA;
+        }
+        h1, h2, h3, .font-sora { font-family: 'Sora', sans-serif; }
+        .bg-night { background-color: #0B101D; }
+        .bg-night-card { background-color: #131B2E; }
+        .text-amber-rest { color: #D6A86A; }
+        .border-amber-rest { border-color: #D6A86A; }
+    </style>
+</head>
+<body class="bg-[#070B14] min-h-screen text-slate-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const createIcon = (name) => ({ size = 18, className = "" }) => {
+            const data = (window.lucide && window.lucide[name]) || [];
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={size}
+                    height={size}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={className}
+                >
+                    {data.map(([tag, attrs], i) => React.createElement(tag, { key: i, ...attrs }))}
+                </svg>
+            );
+        };
+
+        const Shield = createIcon('Shield');
+        const Key = createIcon('Key');
+        const Users = createIcon('Users');
+        const UserPlus = createIcon('UserPlus');
+        const Search = createIcon('Search');
+        const RefreshCw = createIcon('RefreshCw');
+        const Mail = createIcon('Mail');
+        const MessageCircle = createIcon('MessageCircle');
+        const CheckCircle2 = createIcon('CheckCircle2');
+        const AlertCircle = createIcon('AlertCircle');
+        const Trash2 = createIcon('Trash2');
+        const LogOut = createIcon('LogOut');
+        const ExternalLink = createIcon('ExternalLink');
+        const ArrowRight = createIcon('ArrowRight');
+
+        function AdminApp() {
+            const [token, setToken] = useState(() => localStorage.getItem('modo_descanso_admin_token') || '');
+            const [inputToken, setInputToken] = useState('');
+            const [authError, setAuthError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const [buyers, setBuyers] = useState([]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [feedback, setFeedback] = useState(null);
+
+            // Formulário de Cadastro Manual
+            const [newName, setNewName] = useState('');
+            const [newEmail, setNewEmail] = useState('');
+            const [newPhone, setNewPhone] = useState('');
+            const [newPlatform, setNewPlatform] = useState('manual');
+            const [isAdding, setIsAdding] = useState(false);
+
+            const showFeedback = (text, type = 'success') => {
+                setFeedback({ text, type });
+                setTimeout(() => setFeedback(null), 4000);
+            };
+
+            const fetchBuyers = async (authToken) => {
+                const currentToken = authToken || token;
+                if (!currentToken) return;
+                setLoading(true);
+                try {
+                    const res = await fetch('/api/admin?action=list', {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    });
+                    if (res.status === 401) {
+                        setToken('');
+                        localStorage.removeItem('modo_descanso_admin_token');
+                        setAuthError('Senha de administrador incorreta.');
+                        setLoading(false);
+                        return;
+                    }
+                    const data = await res.json();
+                    if (data.success) {
+                        setBuyers(data.buyers || []);
+                    } else {
+                        showFeedback(data.error || 'Erro ao carregar dados', 'error');
+                    }
+                } catch (e) {
+                    showFeedback('Falha de conexão com a API', 'error');
+                }
+                setLoading(false);
+            };
+
+            useEffect(() => {
+                if (token) fetchBuyers(token);
+            }, [token]);
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                setAuthError('');
+                if (!inputToken.trim()) return;
+                const cleanToken = inputToken.trim();
+                localStorage.setItem('modo_descanso_admin_token', cleanToken);
+                setToken(cleanToken);
+                fetchBuyers(cleanToken);
+            };
+
+            const handleLogout = () => {
+                setToken('');
+                localStorage.removeItem('modo_descanso_admin_token');
+                setBuyers([]);
+            };
+
+            const handleAddUser = async (e) => {
+                e.preventDefault();
+                if (!newEmail || !newEmail.includes('@')) {
+                    showFeedback('Informe um e-mail válido', 'error');
+                    return;
+                }
+                setIsAdding(true);
+                try {
+                    const res = await fetch('/api/admin?action=add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            name: newName.trim(),
+                            email: newEmail.trim().toLowerCase(),
+                            phone: newPhone.trim(),
+                            platform: newPlatform
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showFeedback(`Acesso concedido com sucesso para ${newEmail}!`);
+                        setNewName('');
+                        setNewEmail('');
+                        setNewPhone('');
+                        fetchBuyers();
+                    } else {
+                        showFeedback(data.error || 'Erro ao cadastrar', 'error');
+                    }
+                } catch (e) {
+                    showFeedback('Erro ao salvar no banco', 'error');
+                }
+                setIsAdding(false);
+            };
+
+            const handleToggleStatus = async (buyer) => {
+                const nextStatus = buyer.status === 'active' ? 'blocked' : 'active';
+                try {
+                    const res = await fetch('/api/admin?action=status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            email: buyer.email,
+                            status: nextStatus
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showFeedback(`Status de ${buyer.email} alterado para ${nextStatus}.`);
+                        fetchBuyers();
+                    }
+                } catch (e) {
+                    showFeedback('Erro ao alterar status', 'error');
+                }
+            };
+
+            const handleDelete = async (email) => {
+                if (!confirm(`Tem certeza que deseja remover ${email}?`)) return;
+                try {
+                    const res = await fetch('/api/admin?action=delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ email })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showFeedback(`Usuário ${email} removido.`);
+                        fetchBuyers();
+                    }
+                } catch (e) {
+                    showFeedback('Erro ao remover usuário', 'error');
+                }
+            };
+
+            // Disparar reenvio via E-mail padrão do sistema (mailto pronto com instruções)
+            const handleResendEmail = (buyer) => {
+                const appUrl = 'https://modo-descanso.pages.dev';
+                const subject = encodeURIComponent('Seu Acesso ao MODO DESCANSO · Aplicativo');
+                const body = encodeURIComponent(
+                    `Olá, ${buyer.name || 'Praticante'}!\n\n` +
+                    `Seu acesso ao MODO DESCANSO está ativo e liberado.\n\n` +
+                    `Para entrar e começar suas conduções guiadas:\n` +
+                    `1. Acesse o aplicativo: ${appUrl}\n` +
+                    `2. Digite o seu e-mail cadastrado: ${buyer.email}\n` +
+                    `3. Clique em "Acessar Minhas Sessões".\n\n` +
+                    `Recomendamos adicionar a página à tela inicial do seu celular para usar como um aplicativo.\n\n` +
+                    `Qualquer dúvida, estamos à disposição!\n\n` +
+                    `Um abraço,\nEquipe MODO DESCANSO`
+                );
+                window.open(`mailto:${buyer.email}?subject=${subject}&body=${body}`, '_blank');
+                showFeedback(`Cliente de e-mail aberto para ${buyer.email}.`);
+            };
+
+            // Disparar envio via WhatsApp
+            const handleSendWhatsApp = (buyer) => {
+                const appUrl = 'https://modo-descanso.pages.dev';
+                const cleanPhone = (buyer.phone || '').replace(/\D/g, '');
+                const targetPhone = cleanPhone.length >= 10 
+                    ? (cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`)
+                    : '';
+
+                const message = encodeURIComponent(
+                    `Olá, ${buyer.name || 'Praticante'}! Tudo bem?\n\n` +
+                    `Aqui é da equipe do *MODO DESCANSO*.\n\n` +
+                    `Seu acesso ao aplicativo oficial está 100% liberado:\n` +
+                    `👉 *${appUrl}*\n\n` +
+                    `Basta colocar o seu e-mail cadastrado (*${buyer.email}*) para liberar as sessões guiadas e módulos de bônus.\n\n` +
+                    `Dica: você pode salvar o link na tela de início do seu smartphone para acessar a qualquer hora como um app nativo.\n\n` +
+                    `Se precisar de qualquer apoio, é só me responder aqui!`
+                );
+
+                if (targetPhone) {
+                    window.open(`https://wa.me/${targetPhone}?text=${message}`, '_blank');
+                    showFeedback(`WhatsApp aberto para ${targetPhone}.`);
+                } else {
+                    const manualPhone = prompt('Informe o número com DDD para abrir o WhatsApp (Ex: 11999998888):');
+                    if (manualPhone) {
+                        const clean = manualPhone.replace(/\D/g, '');
+                        const full = clean.startsWith('55') ? clean : `55${clean}`;
+                        window.open(`https://wa.me/${full}?text=${message}`, '_blank');
+                    }
+                }
+            };
+
+            const filteredBuyers = buyers.filter(b => {
+                const q = searchTerm.toLowerCase();
+                return (b.email || '').toLowerCase().includes(q) ||
+                       (b.name || '').toLowerCase().includes(q) ||
+                       (b.phone || '').includes(q) ||
+                       (b.platform || '').toLowerCase().includes(q);
+            });
+
+            return (
+                <div className="max-w-6xl mx-auto p-4 md:p-8 flex flex-col gap-6">
+                    
+                    {/* Header Administrativo */}
+                    <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-night-card border border-slate-800 p-5 rounded-2xl shadow-xl">
+                        <div className="flex items-center gap-3">
+                            <img src="img/logo.jpeg" alt="Logo" className="w-10 h-10 rounded-full border border-amber-rest/40 object-cover" />
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h1 className="font-sora text-xl font-bold text-white tracking-tight">MODO DESCANSO</h1>
+                                    <span className="px-2 py-0.5 rounded-full bg-amber-rest/10 border border-amber-rest/30 text-amber-rest text-[10px] font-semibold uppercase">Admin</span>
+                                </div>
+                                <p className="text-xs text-slate-400">Gestão de Alunos, Acessos e Disparos de Suporte</p>
+                            </div>
+                        </div>
+
+                        {token && (
+                            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+                                <a 
+                                    href="/" 
+                                    target="_blank" 
+                                    className="px-3 py-1.5 rounded-xl bg-night border border-slate-700 text-xs text-slate-300 hover:text-amber-rest hover:border-amber-rest flex items-center gap-1.5 transition-all"
+                                >
+                                    <span>Abrir App</span>
+                                    <ExternalLink size={13} />
+                                </a>
+                                <button 
+                                    onClick={fetchBuyers}
+                                    disabled={loading}
+                                    className="px-3 py-1.5 rounded-xl bg-night border border-slate-700 text-xs text-slate-300 hover:text-amber-rest flex items-center gap-1.5 transition-all"
+                                    title="Atualizar lista"
+                                >
+                                    <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                                    <span>Atualizar</span>
+                                </button>
+                                <button 
+                                    onClick={handleLogout}
+                                    className="px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-900/50 text-xs text-rose-300 hover:bg-rose-900/40 flex items-center gap-1.5 transition-all"
+                                >
+                                    <LogOut size={13} />
+                                    <span>Sair</span>
+                                </button>
+                            </div>
+                        )}
+                    </header>
+
+                    {/* Alerta de Feedback */}
+                    {feedback && (
+                        <div className={`p-4 rounded-xl border flex items-center gap-3 text-sm animate-fade-in ${
+                            feedback.type === 'error' 
+                                ? 'bg-rose-950/50 border-rose-800 text-rose-200' 
+                                : 'bg-emerald-950/50 border-emerald-800 text-emerald-200'
+                        }`}>
+                            {feedback.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+                            <span>{feedback.text}</span>
+                        </div>
+                    )}
+
+                    {/* TELA DE LOGIN DO ADMIN */}
+                    {!token ? (
+                        <div className="max-w-md mx-auto w-full py-12">
+                            <form onSubmit={handleLogin} className="bg-night-card border border-slate-800 rounded-2xl p-6 md:p-8 flex flex-col gap-5 shadow-2xl">
+                                <div className="text-center flex flex-col gap-1.5">
+                                    <div className="w-12 h-12 rounded-2xl bg-amber-rest/10 border border-amber-rest/30 text-amber-rest mx-auto flex items-center justify-center">
+                                        <Key size={22} />
+                                    </div>
+                                    <h2 className="font-sora text-xl font-bold text-white mt-2">Acesso Restrito</h2>
+                                    <p className="text-xs text-slate-400">Insira a chave secreta de administrador do sistema.</p>
+                                </div>
+
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs text-slate-400">Chave de Administração (ADMIN_SECRET)</label>
+                                    <input 
+                                        type="password" 
+                                        value={inputToken}
+                                        onChange={(e) => setInputToken(e.target.value)}
+                                        placeholder="••••••••••••"
+                                        className="w-full px-4 py-2.5 rounded-xl bg-night border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-rest"
+                                        autoFocus
+                                    />
+                                    {authError && <span className="text-xs text-rose-400">{authError}</span>}
+                                </div>
+
+                                <button 
+                                    type="submit"
+                                    className="w-full py-3 rounded-xl bg-amber-rest text-night font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2 text-sm shadow-md"
+                                >
+                                    <span>Entrar no Painel</span>
+                                    <ArrowRight size={15} />
+                                </button>
+                            </form>
+                        </div>
+                    ) : (
+                        /* CONTEÚDO PRINCIPAL DO PAINEL */
+                        <div className="flex flex-col gap-6">
+                            
+                            {/* Card de Cadastro Manual de Aluno */}
+                            <div className="bg-night-card border border-slate-800 p-5 rounded-2xl flex flex-col gap-4 shadow-lg">
+                                <div className="flex items-center gap-2 text-amber-rest font-semibold text-sm">
+                                    <UserPlus size={18} />
+                                    <span>Liberar Novo Acesso Manualmente</span>
+                                </div>
+
+                                <form onSubmit={handleAddUser} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                                    <div>
+                                        <label className="text-[11px] text-slate-400 block mb-1">Nome Completo</label>
+                                        <input 
+                                            type="text" 
+                                            value={newName} 
+                                            onChange={(e) => setNewName(e.target.value)}
+                                            placeholder="Ex: Carlos Silva"
+                                            className="w-full px-3 py-2 rounded-xl bg-night border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-rest"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[11px] text-slate-400 block mb-1">E-mail (obrigatório)</label>
+                                        <input 
+                                            type="email" 
+                                            required
+                                            value={newEmail} 
+                                            onChange={(e) => setNewEmail(e.target.value)}
+                                            placeholder="carlos@email.com"
+                                            className="w-full px-3 py-2 rounded-xl bg-night border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-rest"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[11px] text-slate-400 block mb-1">WhatsApp / Telefone</label>
+                                        <input 
+                                            type="text" 
+                                            value={newPhone} 
+                                            onChange={(e) => setNewPhone(e.target.value)}
+                                            placeholder="(11) 98765-4321"
+                                            className="w-full px-3 py-2 rounded-xl bg-night border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-rest"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[11px] text-slate-400 block mb-1">Origem / Origem</label>
+                                        <select 
+                                            value={newPlatform}
+                                            onChange={(e) => setNewPlatform(e.target.value)}
+                                            className="w-full px-3 py-2 rounded-xl bg-night border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-rest"
+                                        >
+                                            <option value="manual">Manual / Cortesia VIP</option>
+                                            <option value="kiwify">Kiwify</option>
+                                            <option value="hotmart">Hotmart</option>
+                                            <option value="outra">Outra</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex items-end">
+                                        <button 
+                                            type="submit" 
+                                            disabled={isAdding}
+                                            className="w-full py-2 rounded-xl bg-amber-rest text-night font-semibold hover:opacity-90 disabled:opacity-50 text-xs transition-all h-[38px] flex items-center justify-center gap-1.5 shadow"
+                                        >
+                                            <UserPlus size={14} />
+                                            <span>{isAdding ? 'Liberando...' : 'Liberar Acesso'}</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            {/* Tabela de Usuários Cadastrados */}
+                            <div className="bg-night-card border border-slate-800 rounded-2xl flex flex-col shadow-lg overflow-hidden">
+                                
+                                {/* Barra Superior da Tabela */}
+                                <div className="p-4 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <Users size={18} className="text-amber-rest" />
+                                        <span className="font-semibold text-sm text-white">Alunos e Compradores ({buyers.length})</span>
+                                    </div>
+
+                                    <div className="relative w-full sm:w-72">
+                                        <Search size={14} className="absolute left-3 top-3 text-slate-500" />
+                                        <input 
+                                            type="text" 
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            placeholder="Buscar por e-mail, nome ou fone..."
+                                            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-night border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-rest"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Listagem Responsiva */}
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-xs">
+                                        <thead className="bg-night/70 text-slate-400 border-b border-slate-800 font-medium">
+                                            <tr>
+                                                <th className="p-3.5 pl-5">Aluno</th>
+                                                <th className="p-3.5">Telefone</th>
+                                                <th className="p-3.5">Origem</th>
+                                                <th className="p-3.5">Status</th>
+                                                <th className="p-3.5">Data Cadastro</th>
+                                                <th className="p-3.5 pr-5 text-right">Ações de Suporte</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800/60">
+                                            {filteredBuyers.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan="6" className="p-8 text-center text-slate-500 text-xs">
+                                                        {searchTerm ? 'Nenhum praticante encontrado com este filtro.' : 'Nenhum usuário cadastrado ainda.'}
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                filteredBuyers.map((b) => (
+                                                    <tr key={b.id || b.email} className="hover:bg-slate-900/40 transition-colors">
+                                                        <td className="p-3.5 pl-5">
+                                                            <div className="font-medium text-white">{b.name || 'Praticante'}</div>
+                                                            <div className="text-slate-400 text-[11px] font-mono">{b.email}</div>
+                                                        </td>
+                                                        <td className="p-3.5 text-slate-300 font-mono text-[11px]">
+                                                            {b.phone || <span className="text-slate-600">-</span>}
+                                                        </td>
+                                                        <td className="p-3.5">
+                                                            <span className="px-2 py-0.5 rounded-full bg-night border border-slate-700 text-slate-300 text-[10px] uppercase font-semibold">
+                                                                {b.platform || 'manual'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3.5">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                                                                b.status === 'active' 
+                                                                    ? 'bg-emerald-950/40 border-emerald-800 text-emerald-400' 
+                                                                    : 'bg-rose-950/40 border-rose-800 text-rose-400'
+                                                            }`}>
+                                                                {b.status === 'active' ? 'Ativo' : b.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3.5 text-slate-400 text-[11px]">
+                                                            {b.created_at ? new Date(b.created_at).toLocaleDateString('pt-BR') : '-'}
+                                                        </td>
+                                                        <td className="p-3.5 pr-5">
+                                                            <div className="flex items-center justify-end gap-1.5">
+                                                                {/* Botão de WhatsApp */}
+                                                                <button 
+                                                                    onClick={() => handleSendWhatsApp(b)}
+                                                                    title="Enviar dados de acesso via WhatsApp"
+                                                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-950/50 border border-emerald-800/80 text-emerald-300 hover:bg-emerald-800/50 hover:text-white flex items-center gap-1 transition-all text-[11px] font-medium"
+                                                                >
+                                                                    <MessageCircle size={13} />
+                                                                    <span className="hidden sm:inline">WhatsApp</span>
+                                                                </button>
+
+                                                                {/* Botão de E-mail */}
+                                                                <button 
+                                                                    onClick={() => handleResendEmail(b)}
+                                                                    title="Reenviar e-mail com instruções de acesso"
+                                                                    className="px-2.5 py-1.5 rounded-lg bg-night border border-slate-700 text-slate-300 hover:text-amber-rest hover:border-amber-rest flex items-center gap-1 transition-all text-[11px]"
+                                                                >
+                                                                    <Mail size={13} />
+                                                                    <span className="hidden sm:inline">E-mail</span>
+                                                                </button>
+
+                                                                {/* Bloquear / Ativar */}
+                                                                <button 
+                                                                    onClick={() => handleToggleStatus(b)}
+                                                                    title={b.status === 'active' ? 'Suspender Acesso' : 'Reativar Acesso'}
+                                                                    className="p-1.5 rounded-lg bg-night border border-slate-700 text-slate-400 hover:text-white transition-all"
+                                                                >
+                                                                    <RefreshCw size={13} />
+                                                                </button>
+
+                                                                {/* Excluir */}
+                                                                <button 
+                                                                    onClick={() => handleDelete(b.email)}
+                                                                    title="Excluir Aluno"
+                                                                    className="p-1.5 rounded-lg bg-night border border-slate-800 text-slate-500 hover:text-rose-400 hover:border-rose-900 transition-all"
+                                                                >
+                                                                    <Trash2 size={13} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+
+                            {/* Instruções de Integração do Gateway */}
+                            <div className="bg-night-card border border-slate-800 p-5 rounded-2xl flex flex-col gap-3 text-xs text-slate-300 shadow-md">
+                                <h3 className="font-sora font-semibold text-sm text-white flex items-center gap-2">
+                                    <Shield size={16} className="text-amber-rest" />
+                                    Integração Automática com Gateway de Pagamento (Kiwify, Hotmart, etc.)
+                                </h3>
+                                <p className="text-slate-400 leading-relaxed">
+                                    Para cadastrar compradores automaticamente no instante da aprovação da compra:
+                                </p>
+                                <div className="p-3 rounded-xl bg-night border border-slate-800 font-mono text-amber-rest break-all">
+                                    URL do Webhook: https://modo-descanso.pages.dev/api/webhook
+                                </div>
+                                <ul className="list-disc pl-5 space-y-1 text-slate-400">
+                                    <li>No seu produto da Kiwify ou outro gateway, adicione um Webhook apontando para a URL acima.</li>
+                                    <li>Selecione o gatilho: <strong>"Compra Aprovada" / "Order Paid"</strong>.</li>
+                                    <li>Assim que o pagamento for confirmado, o e-mail, nome e telefone do cliente são salvos instantaneamente no banco D1 e ele já pode logar no app na mesma hora.</li>
+                                    <li>Em caso de reembolso ou estorno, o gateway avisa o webhook e o status do aluno passa para suspenso automaticamente.</li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    )}
+
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AdminApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
+

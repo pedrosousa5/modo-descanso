@@ -22,13 +22,13 @@ export async function onRequestPost(context) {
         // Se o banco D1 estiver conectado na Cloudflare
         if (env.DB) {
             const row = await env.DB.prepare(
-                'SELECT email, name, status FROM buyers WHERE email = ? LIMIT 1'
+                'SELECT email, name, phone, status FROM buyers WHERE email = ? LIMIT 1'
             ).bind(email).first();
 
             if (!row) {
                 return new Response(JSON.stringify({ 
                     authorized: false, 
-                    message: 'Nenhuma compra ativa encontrada com este e-mail. Verifique se utilizou o mesmo e-mail do checkout.' 
+                    message: 'Nenhum acesso ativo encontrado para este e-mail. Se você já adquiriu o app, entre em contato com nosso WhatsApp oficial para liberação imediata.' 
                 }), {
                     status: 200,
                     headers: { 'Content-Type': 'application/json' }
@@ -38,7 +38,7 @@ export async function onRequestPost(context) {
             if (row.status !== 'active') {
                 return new Response(JSON.stringify({ 
                     authorized: false, 
-                    message: `Acesso indisponível (Status: ${row.status}). Entre em contato com o suporte.` 
+                    message: `Acesso indisponível (Status: ${row.status}). Entre em contato com nosso suporte.` 
                 }), {
                     status: 200,
                     headers: { 'Content-Type': 'application/json' }
@@ -49,7 +49,8 @@ export async function onRequestPost(context) {
                 authorized: true, 
                 user: {
                     email: row.email,
-                    name: row.name || row.email.split('@')[0]
+                    name: row.name || row.email.split('@')[0],
+                    phone: row.phone || ''
                 }
             }), {
                 status: 200,
@@ -57,16 +58,12 @@ export async function onRequestPost(context) {
             });
         }
 
-        // Modo de demonstração / fallback caso o D1 ainda não esteja vinculado
+        // Se por algum motivo de infraestrutura o DB não responder, bloqueia acesso e orienta suporte
         return new Response(JSON.stringify({ 
-            authorized: true, 
-            demo: true,
-            user: {
-                email: email,
-                name: email.split('@')[0]
-            }
+            authorized: false, 
+            message: 'Banco de dados temporariamente inacessível. Tente novamente em instantes ou contate o suporte.' 
         }), {
-            status: 200,
+            status: 503,
             headers: { 'Content-Type': 'application/json' }
         });
 
