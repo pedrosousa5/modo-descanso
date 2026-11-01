@@ -390,7 +390,7 @@
                 durationText: '5 min', 
                 tag: 'Pausa Rápida',
                 context: 'Uma rampa de descida curta no meio do dia, perfeita após uma reunião tensa ou momento de agitação para recuperar o eixo.',
-                audioSrc: 'audio/onda-5.mp3?v=2'
+                audioSrc: 'audio/onda-5.mp3?v=10'
             },
             { 
                 id: 'onda-11', 
@@ -428,41 +428,53 @@
             const [loginError, setLoginError] = useState('');
             const [isLoading, setIsLoading] = useState(false);
 
-            // Pop-up de Contraindicações (SÓ abre APÓS login quando no dashboard, respeitando a janela de 14 dias)
-            const [dontShowAgain, setDontShowAgain] = useState(false);
+            // Pop-up de Contraindicações (SÓ abre se não houver consentimento válido nos últimos 14 dias)
+            const [dontShowAgain, setDontShowAgain] = useState(true);
             const [consentRecord, setConsentRecord] = useState(() => {
-                const saved = localStorage.getItem('modo_descanso_consent');
-                return saved ? JSON.parse(saved) : null;
+                try {
+                    const saved = localStorage.getItem('modo_descanso_consent');
+                    return saved ? JSON.parse(saved) : null;
+                } catch (e) {
+                    return null;
+                }
             });
-            const [showConsentModal, setShowConsentModal] = useState(false);
+            const [showConsentModal, setShowConsentModal] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('modo_descanso_consent');
+                    if (!saved) return false; // Inicia false para nunca piscar antes de logar
+                    const parsed = JSON.parse(saved);
+                    const consentTime = parsed.timestamp_ms || (parsed.date ? new Date(parsed.date).getTime() : 0);
+                    const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+                    // Se o consentimento ainda for válido (menos de 14 dias), NÃO abre
+                    if (consentTime && (Date.now() - consentTime < fourteenDaysMs)) {
+                        return false;
+                    }
+                } catch (e) {}
+                return false;
+            });
 
             // Abre o modal de consentimento apenas quando o usuário está logado e não consentiu nos últimos 14 dias
             useEffect(() => {
                 if (currentUser && view === 'dashboard') {
-                    const savedConsent = localStorage.getItem('modo_descanso_consent');
-                    if (!savedConsent) {
-                        setShowConsentModal(true);
-                    } else {
-                        try {
-                            const parsed = JSON.parse(savedConsent);
-                            let consentTime = 0;
-                            if (parsed.date) {
-                                consentTime = new Date(parsed.date).getTime();
-                            } else if (parsed.timestamp) {
-                                // Fallback para registros antigos sem campo date ISO
-                                consentTime = Date.now();
-                            }
-                            const now = Date.now();
-                            const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
-                            if (!consentTime || (now - consentTime > fourteenDaysMs)) {
-                                setShowConsentModal(true);
-                            } else {
-                                setShowConsentModal(false);
-                            }
-                        } catch (e) {
+                    try {
+                        const savedConsent = localStorage.getItem('modo_descanso_consent');
+                        if (!savedConsent) {
                             setShowConsentModal(true);
+                            return;
                         }
+                        const parsed = JSON.parse(savedConsent);
+                        const consentTime = parsed.timestamp_ms || (parsed.date ? new Date(parsed.date).getTime() : 0);
+                        const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+                        if (!consentTime || (Date.now() - consentTime >= fourteenDaysMs)) {
+                            setShowConsentModal(true);
+                        } else {
+                            setShowConsentModal(false);
+                        }
+                    } catch (e) {
+                        setShowConsentModal(true);
                     }
+                } else {
+                    setShowConsentModal(false);
                 }
             }, [currentUser, view]);
 
@@ -654,11 +666,15 @@
                     const now = new Date();
                     const record = {
                         consented: true,
+                        timestamp_ms: now.getTime(),
                         date: now.toISOString(),
                         timestamp: now.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })
                     };
                     setConsentRecord(record);
                     localStorage.setItem('modo_descanso_consent', JSON.stringify(record));
+                } else {
+                    localStorage.removeItem('modo_descanso_consent');
+                    setConsentRecord(null);
                 }
                 setShowConsentModal(false);
             };
