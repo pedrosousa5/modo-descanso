@@ -381,7 +381,7 @@
                 durationText: '3 min', 
                 tag: 'Transição Imediata',
                 context: 'Vibração vocal simples para interromper o loop de pensamentos acelerados e estimular o nervo vago.',
-                audioSrc: 'audio/humming-3.mp3'
+                audioSrc: 'audio/humming-3.mp3?v=2'
             },
             { 
                 id: 'onda-5', 
@@ -390,7 +390,7 @@
                 durationText: '5 min', 
                 tag: 'Pausa Rápida',
                 context: 'Uma rampa de descida curta no meio do dia, perfeita após uma reunião tensa ou momento de agitação para recuperar o eixo.',
-                audioSrc: 'audio/onda-5.mp3'
+                audioSrc: 'audio/onda-5.mp3?v=2'
             },
             { 
                 id: 'onda-11', 
@@ -399,7 +399,7 @@
                 durationText: '11 min', 
                 tag: 'Clareza & Deep Work',
                 context: 'Condução desenhada para ancorar a mente, dissolver dispersões e restaurar o foco sereno antes de produzir, estudar ou criar.',
-                audioSrc: 'audio/onda-11.mp3'
+                audioSrc: 'audio/onda-11.mp3?v=2'
             },
             { 
                 id: 'onda-22', 
@@ -408,7 +408,7 @@
                 durationText: '22 min', 
                 tag: 'Restauração Profunda',
                 context: 'Condução profunda para desativar o sistema de alerta, desarmar a musculatura e restaurar a energia vital em qualquer momento do dia.',
-                audioSrc: 'audio/onda-22.mp3'
+                audioSrc: 'audio/onda-22.mp3?v=2'
             }
         ];
 
@@ -445,11 +445,19 @@
                     } else {
                         try {
                             const parsed = JSON.parse(savedConsent);
-                            const consentDate = parsed.date ? new Date(parsed.date).getTime() : 0;
+                            let consentTime = 0;
+                            if (parsed.date) {
+                                consentTime = new Date(parsed.date).getTime();
+                            } else if (parsed.timestamp) {
+                                // Fallback para registros antigos sem campo date ISO
+                                consentTime = Date.now();
+                            }
                             const now = Date.now();
                             const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
-                            if (now - consentDate > fourteenDaysMs) {
+                            if (!consentTime || (now - consentTime > fourteenDaysMs)) {
                                 setShowConsentModal(true);
+                            } else {
+                                setShowConsentModal(false);
                             }
                         } catch (e) {
                             setShowConsentModal(true);
@@ -758,20 +766,20 @@
                                     </span>
                                 </div>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 shrink-0">
                                     {view === 'dashboard' && (
                                         <button 
                                             onClick={() => setIsFlipped(!isFlipped)} 
-                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-night-card border border-amber-rest/40 hover:border-amber-rest text-amber-rest hover:bg-amber-rest/10 transition-all text-xs font-semibold shadow-sm active:scale-95"
+                                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-night-card border border-amber-rest/40 hover:border-amber-rest text-amber-rest hover:bg-amber-rest/10 transition-all text-[11px] sm:text-xs font-semibold shadow-sm active:scale-95 whitespace-nowrap"
                                         >
-                                            <RotateCw size={13} className={`transition-transform duration-700 ${isFlipped ? "rotate-180 text-ivory" : ""}`} />
+                                            <RotateCw size={13} className={`transition-transform duration-700 shrink-0 ${isFlipped ? "rotate-180 text-ivory" : ""}`} />
                                             <span>{isFlipped ? "Sessões de Áudio" : "Educação & Bônus"}</span>
                                         </button>
                                     )}
 
                                     <button 
                                         onClick={() => { setSupportView('menu'); setShowSupportModal(true); }}
-                                        className="p-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-400 hover:text-amber-rest hover:border-slate-700 flex items-center justify-center transition-all"
+                                        className="p-1.5 rounded-lg bg-night-card border border-slate-800 text-slate-400 hover:text-amber-rest hover:border-slate-700 flex items-center justify-center transition-all shrink-0"
                                         title="Ajuda, Suporte e Conta"
                                     >
                                         <HelpCircle size={16} />
